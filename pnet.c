@@ -260,7 +260,6 @@ void predict(p_net* net, float* x, int n)
 // puts into an array of integers approximating the output
 void get_binary_prediction (p_net* net, int* prediction, int dim_prediction, float thresh)
 {
-	float 		val;
 	int			j;
 	p_layer*	top_layer = &net->layers[net->nlayers-1];
 /*	int*		prediction = (int*) malloc (sizeof(int) * top_layer->nperc);*/
@@ -268,8 +267,7 @@ void get_binary_prediction (p_net* net, int* prediction, int dim_prediction, flo
 	
 	for (j=0; j<top_layer->nperc; j++)
 	{
-		val = top_layer->perceptrons[j].y;
-		if (val >= thresh)
+		if (top_layer->perceptrons[j].y >= thresh)
 			prediction[j] = 1;
 		else
 			prediction[j] = 0;
@@ -377,7 +375,7 @@ float*** backpropagation_delta (p_net* net, float* target, int dim_target, float
 		{
 			perceptron* pj = &top_layer->perceptrons[j];
 			pj->d = (target[j] - pj->y) * pj->dfx(pj->a);
-			printf("      [output] pj->d: %.4f pj->y: %.4f tj: %.1f pj->a: %.4f pj->dfx(a): %.4f\n", pj->d, pj->y, target[j], pj->a, pj->dfx(pj->a));
+/*			printf("      [output] pj->d: %.4f pj->y: %.4f tj: %.1f pj->a: %.4f pj->dfx(a): %.4f\n", pj->d, pj->y, target[j], pj->a, pj->dfx(pj->a));*/
 		}	
 	} // the next for loop exits immediately being l==0
 	
@@ -725,6 +723,7 @@ void print_netinfo_verbose (p_net* net)
 		{
 			printf("  PERCEPTRON %d\n", j);
 			perceptron* p = &layer->perceptrons[j];
+			printf("    bias: %f\n", p->bias);
 			for (i=0; i<p->nweights; i++)
 			{
 				printf("    w%d: %f", i, p->weights[i]);

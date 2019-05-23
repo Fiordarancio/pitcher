@@ -56,7 +56,7 @@ int 	print_exerr (FILE *fd, int x, float error);
 //------------------------------------------------------------------------------------------------------------------------------
 void 	p_net_train_SGD (	p_net* net, int epochs, int batches, float lrate, float mom, float min_err,
 							struct example** tset, int tsize, char* lf, char* gf);
-float	p_net_train_on_example (p_net* net, struct example* ex, float*** Dw, float** Db, float lrate, float mom);
+float	p_net_train_on_example (p_net* net, struct example* ex, float*** Dw, float** Db, float lrate/*, float mom*/);
 
 #endif
 

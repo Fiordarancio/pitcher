@@ -10,6 +10,7 @@
 
 #define DIM_SMP 2
 #define DIM_LAB	1
+#define DIM_SET 8
 
 int main()
 {
@@ -36,19 +37,19 @@ int main()
  	
 	// prepare training and test sets
 	train_size = test_size = 0;
-	for (i=0; i<40; i++)
+	for (i=0; i<DIM_SET/2; i++)
 	{
 		smp [0] = smp [1] = 0;
 		lab [0] = 0.0;
 		training_set = insert_example (training_set, smp, DIM_SMP, lab, DIM_LAB);
 		train_size++;
-		if (i<20)
+		if (i<DIM_SET/4)
 		{
 			test_set = insert_example (test_set, smp, DIM_SMP, lab, DIM_LAB);
 			test_size++;
 		}
 	}
-	for (i=0; i<80; i++)
+	for (i=0; i<DIM_SET; i++)
 	{
 		smp [0] = (float) (rand() % 2);
 		smp [1] = (float) (rand() % 2);
@@ -63,19 +64,19 @@ int main()
 		
 		training_set = insert_example (training_set, smp, DIM_SMP, lab, DIM_LAB);
 		train_size++;
-		if (i<40)
+		if (i<DIM_SET/2)
 		{
 			test_set = insert_example (test_set, smp, DIM_SMP, lab, DIM_LAB);
 			test_size++;
 		}
 	}
-	for (i=0; i<40; i++)
+	for (i=0; i<DIM_SET/2; i++)
 	{
 		smp [0] = smp [1] = 1.0;
 		lab [0] = 1.0;
 		training_set = insert_example (training_set, smp, DIM_SMP, lab, DIM_LAB);
 		train_size++;
-		if (i<20)
+		if (i<DIM_SET/4)
 		{
 			test_set = insert_example (test_set, smp, DIM_SMP, lab, DIM_LAB);
 			test_size++;

@@ -11,6 +11,7 @@
 
 #define DIM_SMP 2
 #define DIM_LAB	2
+#define DIM_SET	40
 
 int main()
 {
@@ -26,12 +27,12 @@ int main()
 	char*			gfile = "logs/hello_testand_glberr.txt";
 	float			smp [DIM_SMP];
 	float			lab [DIM_LAB];
-	int*				predicted;
+	int				predicted [DIM_LAB];
 	float 			failure_rate;
 	
 	// prepare network: fixed
 	network = p_net_create();
-	p_net_init(network, 2)	;
+	p_net_init(network, 2);
 	
 /*	printf("Insert bias for hidden layer: ");*/
 /*	if (scanf("%f", &bias) < 0) */
@@ -48,24 +49,24 @@ int main()
 /*	p_layer_init (applayer, 2, 1, bias, sigmoid, ddx_sigmoid);*/
 /*	add_layer (applayer, network);*/
 	add_layer (network, 1, 2, 1, sigmoid, ddx_sigmoid);
- 	print_netinfo(network);
+ 	print_netinfo_verbose(network);
  	
 	// prepare training and test sets
 	train_size = test_size = 0;
-	for (i=0; i<40; i++)
+	for (i=0; i<DIM_SET/2; i++)
 	{
 		smp [0] = smp [1] = 0;
 		lab [0] = 1.0;
 		lab [1] = 0.0;
 		training_set = insert_example (training_set, smp, DIM_SMP, lab, DIM_LAB);
 		train_size++;
-		if (i<20)
+		if (i<DIM_SET/4)
 		{
 			test_set = insert_example (test_set, smp, DIM_SMP, lab, DIM_LAB);
 			test_size++;
 		}
 	}
-	for (i=0; i<80; i++)
+	for (i=0; i<DIM_SET; i++)
 	{
 		smp [0] = (float) (rand() % 2);
 		smp [1] = (float) (rand() % 2);
@@ -82,28 +83,26 @@ int main()
 		
 		training_set = insert_example (training_set, smp, DIM_SMP, lab, DIM_LAB);
 		train_size++;
-		if (i<40)
+		if (i<DIM_SET/2)
 		{
 			test_set = insert_example (test_set, smp, DIM_SMP, lab, DIM_LAB);
 			test_size++;
 		}
 	}
-	for (i=0; i<40; i++)
+	for (i=0; i<DIM_SET/2; i++)
 	{
 		smp [0] = smp [1] = 1.0;
 		lab [0] = 0.0;
 		lab [1] = 1.0;
 		training_set = insert_example (training_set, smp, DIM_SMP, lab, DIM_LAB);
 		train_size++;
-		if (i<20)
+		if (i<DIM_SET/4)
 		{
 			test_set = insert_example (test_set, smp, DIM_SMP, lab, DIM_LAB);
 			test_size++;
 		}
 	}
 	printf("Training set has %d examples while test set has got %d\n", train_size, test_size);
-	
-	
 	
 	// prepare training
 	printf("Insert number of batches: ");
@@ -129,8 +128,9 @@ int main()
 	p_net_train_SGD (network, ep, bt, lr, mm, me, &training_set, train_size, lfile, gfile);
 	
 	// check over training set
-	predicted = (int*) malloc (sizeof(int) * DIM_LAB);
 	failure_rate = 0;
+	for (i=0; i<DIM_LAB; i++)
+		predicted[i] = 0;
 	printf("\nNETWORK PREDICTION OVER TRAINING SET\n");
 	for (i=0; i<train_size; i++)
 	{
