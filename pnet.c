@@ -125,12 +125,9 @@ void perceptron_init(perceptron* p, int n, float (*function)(float), float (*der
 	p->weights = (float*) malloc(sizeof(float)*p->nweights);
 	for (i=0; i<n; i++)
 	{
-	// give to weights random values uniformly distributed in [0,1]
+		// give to weights random values uniformly distributed in [0,1]
 		p->weights[i] = ((float) rand()) / ((unsigned int) RAND_MAX+1);
-/*		p->weights[i] = (float) rand() / ((unsigned int) RAND_MAX + 1);		*/
-/*		p->weights[i] /= pow(2,32) - 1; // that's nonsense '*/
-/*		printf("w[%d] %f\n", i, p->weights[i]);*/
-/*		p->weights[i] = 0.0;*/
+		dbg_all_printf("w[%d] %f\n", i, p->weights[i]);
 	}
 	p->fx 	= function;
 	p->dfx 	= derivative;
@@ -225,7 +222,7 @@ void evaluate(perceptron* p, float* x, int n)
 	while (n--) 
 		p->a += x[n]*p->weights[n];
 	p->y = p->fx(p->a);
-/*	printf("p->a: %f p->y: %f\n", p->a, p->y);*/
+	dbg_all_printf("(evaluate) p->y = p->fx(%f) = %f\n", p->a, p->y);
 }
 
 // evaluate output of a layer that is not the first one
@@ -248,7 +245,7 @@ void predict(p_net* net, float* x, int n)
 	// input layer by first
 	for (j=0; j<net->layers[0].nperc; j++)
 	{
-/*		printf("Pred %d of input layer\n", j);*/
+		dbg_all_printf("Prediction %d of input layer\n", j);
 		evaluate(&net->layers[0].perceptrons[j], x, n);
 	}
 	// all the others
@@ -262,7 +259,6 @@ void get_binary_prediction (p_net* net, int* prediction, int dim_prediction, flo
 {
 	int			j;
 	p_layer*	top_layer = &net->layers[net->nlayers-1];
-/*	int*		prediction = (int*) malloc (sizeof(int) * top_layer->nperc);*/
 	assert		(dim_prediction == top_layer->nperc);
 	
 	for (j=0; j<top_layer->nperc; j++)
@@ -375,7 +371,7 @@ float*** backpropagation_delta (p_net* net, float* target, int dim_target, float
 		{
 			perceptron* pj = &top_layer->perceptrons[j];
 			pj->d = (target[j] - pj->y) * pj->dfx(pj->a);
-/*			printf("      [output] pj->d: %.4f pj->y: %.4f tj: %.1f pj->a: %.4f pj->dfx(a): %.4f\n", pj->d, pj->y, target[j], pj->a, pj->dfx(pj->a));*/
+			dbg_printf("    [output] pj->d = (%f - %f)*[pj->dfx(%f) = %f] = %f\n",target[j],pj->y,pj->a,pj->dfx(pj->a), pj->d);
 		}	
 	} // the next for loop exits immediately being l==0
 	
@@ -392,7 +388,7 @@ float*** backpropagation_delta (p_net* net, float* target, int dim_target, float
 			{
 				perceptron* pj = &currlayer->perceptrons[j];
 				pj->d = (target[j] - pj->y) * pj->dfx(pj->a);
-/*				printf("      [output] pj->d: %.4f pj->y: %.4f tj: %.1f pj->a: %.4f pj->dfx(a): %.4f\n", pj->d, pj->y, target[j], pj->a, pj->dfx(pj->a));*/
+				dbg_printf("    [output] pj->d = (%f - %f)*[pj->dfx(%f) = %f] = %f\n",target[j],pj->y,pj->a,pj->dfx(pj->a), pj->d);
 			}
 
 		}
@@ -404,8 +400,7 @@ float*** backpropagation_delta (p_net* net, float* target, int dim_target, float
 			for (j=0; j<currlayer->nperc; j++)
 				sum += currlayer->perceptrons[j].weights[i] * currlayer->perceptrons[j].d;
 			pi->d = pi->dfx(pi->a) * sum;
-/*			printf("      [eval for layer %d] pi->d: %.4f pi->a: %.4f pi->dfx(a): %.4f sum: %.4f\n", l-1, pi->d, pi->a, pi->dfx(pi->a), sum);*/
-
+			dbg_printf("    [eval for layer %d] pi->d = [pj->dfx(%f) = %f] * %f = %f\n", l-1,pi->a,pi->dfx(pi->a),sum, pi->d);
 		}
 		
 		// once all di are stored, we memorize the delta rule in DeltaWji
@@ -695,9 +690,9 @@ p_net* load_network (char* wgfile, char* prfile)
 	return net;
 }
 
-//---------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------
 // PRINT NETWORK CHARACTERISTICS
-//---------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------
 void print_netinfo (p_net* net) 
 {
 	int l;
@@ -714,7 +709,8 @@ void print_netinfo_verbose (p_net* net)
 	
 	print_netinfo(net);
 	
-	printf("FULL NETWORK MAP\n");
+	printf("\nMULTILAYER PERCEPTRON NETWORK - FULL NETWORK MAP\n");
+	printf("Total layers: %d\n", net->nlayers);
 	for (l=0; l<net->nlayers; l++)
 	{
 		printf("LAYER %d\n", l);

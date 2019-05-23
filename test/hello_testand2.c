@@ -10,7 +10,7 @@
 
 #define DIM_SMP 2
 #define DIM_LAB	1
-#define DIM_SET 8
+#define DIM_SET 40
 
 int main()
 {
@@ -104,7 +104,7 @@ int main()
 		me = 0.001;	
 	printf("\nApplying learning rate %f and momentum %f\n", lr, mm);
 	printf("With %d batches, we have %d samples per batch (surplus: %d)\n", bt, train_size/bt, (train_size%bt));
-	printf("We stop at epoch %d or under error %f\n", ep, me);
+	printf("We stop at epoch %d or under error %f\n\n", ep, me);
 
 	// train
 	p_net_train_SGD (network, ep, bt, lr, mm, me, &training_set, train_size, lfile, gfile);

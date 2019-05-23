@@ -1,5 +1,11 @@
+# debugging
 CPPFLAGS=-g
-CFLAGS=-O3 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized
+CFLAGS=-O0 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized -D__DEBUG_PRINTF__
+
+#release
+#CPPFLAGS=
+#CFLAGS=-O3 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized
+
 LDTHR=-lpthread -lrt
 LDLIBS=-lasound -lsndfile -lfftw3 $(LDTHR) -lm
 
@@ -40,14 +46,11 @@ dep:
 # DO NOT DELETE
 
 autil.o: autil.h
-fpitcher.o: pnet.h autil.h pitch.h ptask_time.h mutils.h
-ftrain.o: pnetlib.h pnet.h pitch.h
+ftrain.o: pnetlib.h pnet.h debug.h pitch.h
 mutils.o: mutils.h
 pitch.o: pitch.h
-pitcher.o: autil.h ptask_time.h
-pitcher3.o: pnet.h pitch.h autil.h ptask_time.h mutils.c mutils.h
-pnet.o: pnet.h
-pnetlib.o: pnetlib.h pnet.h
-ptask_time.o: ptask_time.h
-train.o: pnetlib.h pnet.h pitch.h autil.h
+pitcher3.o: pnet.h debug.h pitch.h autil.h mutils.c mutils.h
+pnet.o: pnet.h debug.h
+pnetlib.o: pnetlib.h pnet.h debug.h
+train.o: pnetlib.h pnet.h debug.h pitch.h autil.h
 wav.o: wav.h autil.h

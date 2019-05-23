@@ -19,29 +19,15 @@
 #include <assert.h>
 #include <float.h>
 
+#include "debug.h"
+
 #define NN_SUCCESS 	0
 #define NN_FAILURE 	(-1)
 #define OPEN		0
 #define CLOSE		1
 #define PRINT		2
 #define	NFUNC		8
-/*
-#define relu(a,b) ({\
-	__typeof__ (a) _a = (a); \
-	__typeof__ (b) _b = (b); \
-	_a > _b ? _a : _b; })
-*/
-	
-#define DEBUG
-#ifdef DEBUG
-#define dbg_printf printf
-#endif
 
-// Costruire la rete: essa ha 
-//	- SAMPLERATE * thread_period input neurons
-// 	- unknown number of hidden neurons
-// 	- 12 output neurons
- 
 //------------------------------------------
 // COMMON OBJECTIVE FUNCTIONS
 // (should add softmax)

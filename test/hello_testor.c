@@ -32,6 +32,8 @@ int main()
 	float			smp [DIM_SMP];
 	float			lab2 [DIM_LAB2];	// net2 is categorical
 	float			lab1;				// net1 is binary
+	int 			predicted1 [DIM_LAB1];
+	int				predicted2 [DIM_LAB2];
 	float 			failure_rate;
 	
 	// prepare network with one perceptron only
@@ -42,13 +44,13 @@ int main()
 	
 	// first net
 	add_layer (net1, 0, 1, 2, sigmoid, ddx_sigmoid);
-	printf("SINGLE PERCEPTRON NET - ");
+	printf("SINGLE PERCEPTRON NET");
 	print_netinfo(net1);
 	
 	// second net
 	add_layer (net2, 0, 2, 2, sigmoid, ddx_sigmoid);
 	add_layer (net2, 1, 2, 2, sigmoid, ddx_sigmoid);
-	printf("2BY2 NET - ");
+	printf("2BY2 NET");
  	print_netinfo(net2);
  	
 	// prepare training and test sets
@@ -134,7 +136,7 @@ int main()
 		me = 0.001;	
 	printf("\nApplying learning rate %f and momentum %f\n", lr, mm);
 	printf("With %d batches, we have %d samples per batch (surplus: %d)\n", bt, train_size1/bt, (train_size1%bt));
-	printf("We stop at epoch %d or under error %f\n", ep, me);
+	printf("We stop at epoch %d or under error %f\n\n", ep, me);
 	
 	// train
 	printf("TRAINING SINGLE PERCEPTRON NETWORK...\n");
@@ -143,7 +145,7 @@ int main()
 	p_net_train_SGD (net2, ep, bt, lr, mm, me, &training_set2, train_size2, lfile2, gfile2);
 	
 	//--------------------------------------------------------------------------------------------------	
-	// NETWORK 1 -> recycle lab1
+	// NETWORK 1
 	//--------------------------------------------------------------------------------------------------
 	// check over training set
 	failure_rate = 0;
@@ -153,13 +155,13 @@ int main()
 		struct example* ex = get_example(training_set1, i);
 		assert(ex != NULL);
 		predict(net1, ex->samples, DIM_SMP);
-		get_binary_prediction(net1, (int*)&lab1, DIM_LAB1, 0.5);
-/*		printf("[%d] Looking at (%d, %d) [%d], ", i, (int)ex->samples[0], (int)ex->samples[1], (int)ex->label[0]);*/
-/*		printf("network predicts: [%.1f] -> [%d] ", net1->layers[net1->nlayers-1].perceptrons[0].y, predicted[0]);*/
+		get_binary_prediction(net1, predicted1, DIM_LAB1, 0.5);
+		dbg_printf("[%d] Looking at (%d, %d) [%d], ", i, (int)ex->samples[0], (int)ex->samples[1], (int)ex->label[0]);
+		dbg_printf("network predicts: [%.1f] -> [%d] ", net1->layers[net1->nlayers-1].perceptrons[0].y, predicted1[0]);
 		int isRight = 1;
-		if (lab1 != (int)ex->label[0])
+		if (predicted1[0] != (int)ex->label[0])
 			isRight = 0;
-/*		printf("-> answer is %s\n", (isRight==0)? "WRONG :(" : "CORRECT :D");*/
+		dbg_printf("-> answer is %s\n", (isRight==0)? "WRONG :(" : "CORRECT :D");
 		if (isRight == 0)
 			failure_rate++;
 	}
@@ -172,13 +174,13 @@ int main()
 	{
 		struct example* ex = get_example(test_set1, i);
 		predict(net1, ex->samples, DIM_SMP);
-		get_binary_prediction(net1, (int*)&lab1, DIM_LAB1, 0.5);
-/*		printf("[%d] Looking at (%d, %d) [%d], ", i, (int)ex->samples[0], (int)ex->samples[1], (int)ex->label[0]);*/
-/*		printf("network predicts: [%.1f] -> [%d] ", net1->layers[net1->nlayers-1].perceptrons[0].y, predicted[0]);*/
+		get_binary_prediction(net1, predicted1, DIM_LAB1, 0.5);
+		dbg_printf("[%d] Looking at (%d, %d) [%d], ", i, (int)ex->samples[0], (int)ex->samples[1], (int)ex->label[0]);
+		dbg_printf("network predicts: [%.1f] -> [%d] ", net1->layers[net1->nlayers-1].perceptrons[0].y, predicted1[0]);
 		int isRight = 1;
-		if (lab1 != (int)ex->label[0])
+		if (predicted1[0] != (int)ex->label[0])
 			isRight = 0;
-/*		printf("-> answer is %s\n", (isRight==0)? "WRONG :(" : "CORRECT :D");*/
+		dbg_printf("-> answer is %s\n", (isRight==0)? "WRONG :(" : "CORRECT :D");
 		if (isRight == 0)
 			failure_rate++;
 	}
@@ -195,14 +197,14 @@ int main()
 		struct example* ex = get_example(training_set2, i);
 		assert(ex != NULL);
 		predict(net2, ex->samples, DIM_SMP);
-		get_binary_prediction(net2, (int*)lab2, DIM_LAB2, 0.5);
-/*		printf("[%d] Looking at (%d, %d) [%d, %d], ", i, (int)ex->samples[0], (int)ex->samples[1], (int)ex->label[0], (int)ex->label[1]);*/
-/*		printf("network predicts: [%.1f, %.1f] -> [%d, %d] ", net2->layers[net2->nlayers-1].perceptrons[0].y, net2->layers[net2->nlayers-1].perceptrons[1].y, predicted[0], predicted[1]);*/
+		get_binary_prediction(net2, predicted2, DIM_LAB2, 0.5);
+		dbg_printf("[%d] Looking at (%d, %d) [%d, %d], ", i,(int)ex->samples[0],(int)ex->samples[1],(int)ex->label[0],(int)ex->label[1]);
+		dbg_printf("network predicts: [%.1f, %.1f] -> [%d, %d] ", net2->layers[net2->nlayers-1].perceptrons[0].y, net2->layers[net2->nlayers-1].perceptrons[1].y, predicted2[0], predicted2[1]);
 		int isRight = 1;
 		for (j=0; j<DIM_LAB2; j++)
-			if (lab2[j] != (int)ex->label[j])
+			if (predicted2[j] != (int)ex->label[j])
 				isRight = 0;
-/*		printf("-> answer is %s\n", (isRight==0)? "WRONG :(" : "CORRECT :D");*/
+		dbg_printf("-> answer is %s\n", (isRight==0)? "WRONG :(" : "CORRECT :D");
 		if (isRight == 0)
 			failure_rate++;
 	}
@@ -215,14 +217,14 @@ int main()
 	{
 		struct example* ex = get_example(test_set2, i);
 		predict(net2, ex->samples, DIM_SMP);
-		get_binary_prediction(net2, (int*)lab2, DIM_LAB2, 0.5);
-/*		printf("[%d] Looking at (%d, %d) [%d, %d], ", i, (int)ex->samples[0], (int)ex->samples[1], (int)ex->label[0], (int)ex->label[1]);*/
-/*		printf("network predicts: [%.1f, %.1f] -> [%d, %d] ", net2->layers[net2->nlayers-1].perceptrons[0].y, net2->layers[net2->nlayers-1].perceptrons[1].y, predicted[0], predicted[1]);*/
+		get_binary_prediction(net2, predicted2, DIM_LAB2, 0.5);
+		dbg_printf("[%d] Looking at (%d, %d) [%d, %d], ",i,(int)ex->samples[0],(int)ex->samples[1],(int)ex->label[0],(int)ex->label[1]);
+		dbg_printf("network predicts: [%.1f, %.1f] -> [%d, %d] ", net2->layers[net2->nlayers-1].perceptrons[0].y, net2->layers[net2->nlayers-1].perceptrons[1].y, predicted2[0], predicted2[1]);
 		int isRight = 1;
 		for (j=0; j<DIM_LAB2; j++)
-			if (lab2[j] != (int)ex->label[j])
+			if (predicted2[j] != (int)ex->label[j])
 				isRight = 0;
-/*		printf("-> answer is %s\n", (isRight==0)? "WRONG :(" : "CORRECT :D");*/
+		dbg_printf("-> answer is %s\n", (isRight==0)? "WRONG :(" : "CORRECT :D");
 		if (isRight == 0)
 			failure_rate++;
 	}

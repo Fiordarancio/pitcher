@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 
 
 # Default values are often updated
-gfile = 'logs/hello_testand2_glberr.txt'
-lfile = 'logs/hello_testand2_locerr.txt'
+gfile = 'logs/hello_testxor_glberr.txt'
+lfile = 'logs/hello_testxor_locerr.txt'
 ans = input('Can I use files in log (now {} and {})? [y/n] '.format(gfile, lfile))
 if (ans != 'y'):
 	gfile = input('Please tell me the file to read for GLOBAL error: ')

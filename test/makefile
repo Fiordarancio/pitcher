@@ -1,6 +1,12 @@
 # various tests
+
+# debugging
 CPPFLAGS=-g
-CFLAGS=-O3 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized
+CFLAGS=-O0 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized -D__PNET_DEBUG__
+
+#CPPFLAGS=
+#CFLAGS=-O3 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized
+
 LDTHR=-lpthread -lrt
 LDLIBS=-lasound -lsndfile -lfftw3 $(LDTHR) -lm
 
@@ -40,8 +46,8 @@ hello_fft.o: ../pitch.h
 hello_fftwav.o: ../wav.h ../autil.h
 hello_pow.o: ../wav.h ../autil.h
 hello_shuf.o: ../mutils.h
-hello_testand.o: ../pnet.h ../pnetlib.h ../pnet.h
-hello_testand2.o: ../pnet.h ../pnetlib.h ../pnet.h
+hello_testand.o: ../pnet.h ../debug.h ../pnetlib.h ../pnet.h
+hello_testand2.o: ../pnet.h ../debug.h ../pnetlib.h ../pnet.h
 hello_testchar.o: ../pnetlib.h ../pnet.h
-hello_testor.o: ../pnet.h ../pnetlib.h ../pnet.h
-hello_testxor.o: ../pnet.h ../pnetlib.h ../pnet.h
+hello_testor.o: ../pnet.h ../debug.h ../pnetlib.h ../pnet.h
+hello_testxor.o: ../pnet.h ../debug.h ../pnetlib.h ../pnet.h

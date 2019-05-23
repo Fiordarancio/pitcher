@@ -37,11 +37,11 @@ int main()
 	network = p_net_create();
 	p_net_init(network, 2);
 	
-	add_layer (network, 0, 2, 2, sigmoid, ddx_sigmoid);
+	add_layer (network, 0, 3, 2, sigmoid, ddx_sigmoid);
 /*	applayer = p_layer_create();*/
 /*	p_layer_init (applayer, 2, 2, bias, sigmoid, ddx_sigmoid);*/
 /*	add_layer (applayer, network, 1);*/
-	add_layer (network, 1, 2, 2, sigmoid, ddx_sigmoid);
+	add_layer (network, 1, 2, 3, sigmoid, ddx_sigmoid);
  	print_netinfo(network);
  	
 	// prepare training and test sets

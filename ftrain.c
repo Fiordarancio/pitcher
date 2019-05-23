@@ -156,15 +156,15 @@ int main(int argc, char** argv)
 	printf("We got a training set of %d valid couples\n", train_size);
 		
 	// check that the fft done is good for any of the samples...
-/*	FILE* f1 = fopen("logs/ftrain_fft.txt", "a+"); assert(f1!=NULL);*/
-/*	FILE* f2 = fopen("logs/ftrain_sine.txt", "a+"); assert(f2!=NULL);*/
-/*	printf("We're gonna save the sin/fft of sample with label: ");*/
-/*	print_winner_pitch_verbose(training_set->label, training_set->nl);*/
-/*	for (i=0; i<NUM_INPUTS; i++)*/
-/*		fprintf(f1, "%d,%f\n", i, training_set->samples[i]);*/
-/*	for (i=0; i<FRAMES_PER_CHUNK; i++)		*/
-/*		fprintf(f2, "%d,%f\n", i, sinwave[i*CHANNELS]);*/
-/*	fclose(f1); fclose(f2);*/
+	FILE* f1 = fopen("logs/ftrain_fft.txt", "a+"); assert(f1!=NULL);
+	FILE* f2 = fopen("logs/ftrain_sine.txt", "a+"); assert(f2!=NULL);
+	printf("We're gonna save the sin/fft of sample with label: ");
+	print_winner_pitch_verbose(training_set->label, training_set->nl);
+	for (i=0; i<NUM_INPUTS; i++)
+		fprintf(f1, "%d,%f\n", i, training_set->samples[i]);
+	for (i=0; i<FRAMES_PER_CHUNK; i++)		
+		fprintf(f2, "%d,%f\n", i, sinwave[i*CHANNELS]);
+	fclose(f1); fclose(f2);
 
 	//-----------------------------------------------------------------------------------------------
 	// TRAINING PHASE
