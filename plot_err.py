@@ -5,10 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-#gfile = 'logs/ftrain_glberr.txt'
-#lfile = 'logs/ftrain_locerr.txt'
-gfile = 'logs/hello_testchar_glberr.txt'
-lfile = 'logs/hello_testchar_locerr.txt'
+gfile = 'logs/ftrain_glberr.txt'
+lfile = 'logs/ftrain_locerr.txt'
 ans = input('Can I use files in log (now {} and {})? [y/n] '.format(gfile, lfile))
 if (ans != 'y'):
 	gfile = input('Please tell me the file to read for GLOBAL error: ')

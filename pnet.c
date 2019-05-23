@@ -377,7 +377,7 @@ float*** backpropagation_delta (p_net* net, float* target, int dim_target, float
 		{
 			perceptron* pj = &top_layer->perceptrons[j];
 			pj->d = (target[j] - pj->y) * pj->dfx(pj->a);
-/*			printf("      [output] pj->d: %.4f pj->y: %.4f tj: %.1f pj->a: %.4f pj->dfx(a): %.4f\n", pj->d, pj->y, target[j], pj->a, pj->dfx(pj->a));*/
+			printf("      [output] pj->d: %.4f pj->y: %.4f tj: %.1f pj->a: %.4f pj->dfx(a): %.4f\n", pj->d, pj->y, target[j], pj->a, pj->dfx(pj->a));
 		}	
 	} // the next for loop exits immediately being l==0
 	
@@ -394,7 +394,7 @@ float*** backpropagation_delta (p_net* net, float* target, int dim_target, float
 			{
 				perceptron* pj = &currlayer->perceptrons[j];
 				pj->d = (target[j] - pj->y) * pj->dfx(pj->a);
-				printf("      [output] pj->d: %.4f pj->y: %.4f tj: %.1f pj->a: %.4f pj->dfx(a): %.4f\n", pj->d, pj->y, target[j], pj->a, pj->dfx(pj->a));
+/*				printf("      [output] pj->d: %.4f pj->y: %.4f tj: %.1f pj->a: %.4f pj->dfx(a): %.4f\n", pj->d, pj->y, target[j], pj->a, pj->dfx(pj->a));*/
 			}
 
 		}
@@ -406,7 +406,7 @@ float*** backpropagation_delta (p_net* net, float* target, int dim_target, float
 			for (j=0; j<currlayer->nperc; j++)
 				sum += currlayer->perceptrons[j].weights[i] * currlayer->perceptrons[j].d;
 			pi->d = pi->dfx(pi->a) * sum;
-			printf("      [eval for layer %d] pi->d: %.4f pi->a: %.4f pi->dfx(a): %.4f sum: %.4f\n", l-1, pi->d, pi->a, pi->dfx(pi->a), sum);
+/*			printf("      [eval for layer %d] pi->d: %.4f pi->a: %.4f pi->dfx(a): %.4f sum: %.4f\n", l-1, pi->d, pi->a, pi->dfx(pi->a), sum);*/
 
 		}
 		

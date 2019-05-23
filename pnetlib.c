@@ -288,10 +288,10 @@ void standardize_examples (struct example* head, int list_size)
 		{
 			if (s[i] > 0)
 			{
-				printf("Mean is: %f; while std dev is: %f\n", m[i], s[i]);
-				printf("Doing (%f -%f) / %f\n", list->samples[i], m[i], s[i]);
+/*				printf("Mean is: %f; while std dev is: %f\n", m[i], s[i]);*/
+/*				printf("Doing (%f -%f) / %f\n", list->samples[i], m[i], s[i]);*/
 				list->samples[i] = (list->samples[i] - m[i]) / sqrt(s[i]);
-				printf("Normalized [%d][%d] %f\n\n", i, k, list->samples[i]);
+/*				printf("Normalized [%d][%d] %f\n\n", i, k, list->samples[i]);*/
 				list = list->next;
 			}
 		}
@@ -376,6 +376,7 @@ void p_net_train_SGD (	p_net* net, int epochs, int batches, float lrate, float m
 			for (smp=0; smp<samples_per_batch; smp++)
 			{
 				// get element at index mbc*samples_per_batch + smp
+/*				printf("Training on example %d\n", mbc*samples_per_batch+smp);*/
 				struct example* ex = get_example(*tset, (mbc*samples_per_batch+smp));
 				assert(ex!=NULL);
 				local_err += p_net_train_on_example(net, ex, DeltaWji, DeltaBias, lrate, mom);		
@@ -388,16 +389,17 @@ void p_net_train_SGD (	p_net* net, int epochs, int batches, float lrate, float m
 				{
 					for (i=0; i<net->layers[l].perceptrons[j].nweights; i++)
 					{
+/*						printf("  Accumulated DWji[%d][%d][%d]: %f += ", l,j,i, DeltaWji[l][j][i]);*/
 						DeltaWji[l][j][i] /= samples_per_batch;
-						printf("weight[%d][%d][%d]: %f ->", l, j, i, net->layers[l].perceptrons[j].weights[i]);
+/*						printf("w[%d][%d][%d]: %f -> ", l, j, i, net->layers[l].perceptrons[j].weights[i]);*/
 						net->layers[l].perceptrons[j].weights[i] += DeltaWji[l][j][i];
-						printf(" new weight[%d][%d][%d]: %f ", l, j, i, net->layers[l].perceptrons[j].weights[i]);
-						printf(" (applied Dwji: %f)\n", DeltaWji[l][j][i]);
+/*						printf("new w[%d][%d][%d]: %f ", l, j, i, net->layers[l].perceptrons[j].weights[i]);*/
+/*						printf("(applied Dwji: %f)\n", DeltaWji[l][j][i]);*/
 					}
 					DeltaBias[l][j] /= samples_per_batch;
 					net->layers[l].perceptrons[j].bias += DeltaBias[l][j];
-					printf("  Bias [%d][%d] is: %f ", l,j, net->layers[l].perceptrons[j].bias);
-					printf(" (applied DeltaBias: %f)\n", DeltaBias[l][j]);
+					printf("  new bias [%d][%d] is: %f ", l,j, net->layers[l].perceptrons[j].bias);
+					printf("(applied DeltaBias: %f)\n", DeltaBias[l][j]);
 				}
 			}
 			// add to global
@@ -405,7 +407,6 @@ void p_net_train_SGD (	p_net* net, int epochs, int batches, float lrate, float m
 			// print the local error averaged on batch
 			local_err /= samples_per_batch;
 			print_exerr(fl, (epc-1)*batches+mbc, local_err);
-/*			printf("  Error on batch is %f\n", local_err);*/
 			printf("  Batch %d...\r", (mbc+1));
 			fflush(stdout);
 		}
@@ -437,13 +438,17 @@ void p_net_train_SGD (	p_net* net, int epochs, int batches, float lrate, float m
 				{
 					for (i=0; i<net->layers[l].perceptrons[j].nweights; i++)
 					{
+/*						printf("Accumulated DWji[%d][%d][%d]: %f -> ", l,j,i, DeltaWji[l][j][i]);*/
 						DeltaWji[l][j][i] /= samples_surplus;
+/*						printf("w[%d][%d][%d]: %f ->", l, j, i, net->layers[l].perceptrons[j].weights[i]);*/
 						net->layers[l].perceptrons[j].weights[i] += DeltaWji[l][j][i];
-/*						printf(" New weight[%d][%d][%d]: %f\n", l, j, i, net->layers[l].perceptrons[j].weights[i]);*/
+/*						printf("new w[%d][%d][%d]: %f\n", l, j, i, net->layers[l].perceptrons[j].weights[i]);*/
+/*						printf("(applied Dwji: %f)\n", DeltaWji[l][j][i]);*/
 					}
 					DeltaBias[l][j] /= samples_surplus;
 					net->layers[l].perceptrons[j].bias += DeltaBias[l][j];
-/*					printf("  Bias [%d][%d] is: %f\n", l,j, net->layers[l].perceptrons[j].bias);*/
+/*					printf("  new bias [%d][%d] is: %f\n", l,j, net->layers[l].perceptrons[j].bias);*/
+/*					printf("(applied DeltaBias: %f)\n", DeltaBias[l][j]);*/
 				}
 			}
 			// add to global
@@ -451,7 +456,6 @@ void p_net_train_SGD (	p_net* net, int epochs, int batches, float lrate, float m
 			// print the local error averaged on batch
 			local_err /= samples_surplus;
 			print_exerr(fl, (epc-1)*batches+mbc, local_err);
-/*			printf("  Error on surplus batch is %f\n", local_err);			*/
 		}
 		
 		
@@ -482,7 +486,7 @@ float p_net_train_on_example (p_net* net, struct example* ex, float*** Dw, float
 	int		l, j, i;
 	
 	predict(net, ex->samples, ex->ns);
-	print_last_prediction(net);
+/*	print_last_prediction(net);*/
 	
 	// evaluate now the error over that sample
 	local_err += quadratic_error (net, ex->label, ex->nl); 
@@ -497,9 +501,11 @@ float p_net_train_on_example (p_net* net, struct example* ex, float*** Dw, float
 			Db[l][j] += newDeltaBias[l][j];
 			for (i=0; i<net->layers[l].perceptrons[j].nweights; i++)
 			{
-/*				printf("      newDwij[%d][%d][%d]%f\n", l,j,i, newDeltaWji[l][j][i]);*/
-				Dw[l][j][i] += newDeltaWji[l][j][i] + mom * Dw[l][j][i];
-				printf ("      DeltaW[%d][%d][%d] with the new is: %f\n",l,j,i,Dw[l][j][i]);
+/*				printf("    newDwij[%d][%d][%d]%f; mom*Dw: %f -> ", l,j,i, newDeltaWji[l][j][i], (mom*Dw[l][j][i]));*/
+				// ATTENTION!!! It was Dw += new + Dw*perc, so I was getting Dw = Dw + Dw*perc + new, that meant I was getting
+				// Dw = (1+perc)*Dw + new!!!
+				Dw[l][j][i] = newDeltaWji[l][j][i] + mom * Dw[l][j][i]; 
+/*				printf ("DeltaW[%d][%d][%d] with the new is: %f\n",l,j,i,Dw[l][j][i]);*/
 			}
 			free(newDeltaWji[l][j]);
 		}

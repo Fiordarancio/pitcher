@@ -12,13 +12,14 @@
 #include "fftw3.h"
 
 #define NHD					8
-#define DIM_TSET			1
-#define NOISE_STEPS			1
+#define DIM_TSET			10
+#define NOISE_STEPS			20
 
 #define SAMPLERATE			44100
 #define FRAMES_PER_CHUNK	2205
 #define CHANNELS			2 		// must work in this case too
 #define MIN_VOLUME			15000
+#define STEP_VOLUME			300
 
 #define BATCHES				10
 #define MAX_EPOCHS			20
@@ -164,7 +165,7 @@ int main(int argc, char** argv)
 /*	for (i=0; i<FRAMES_PER_CHUNK; i++)		*/
 /*		fprintf(f2, "%d,%f\n", i, sinwave[i*CHANNELS]);*/
 /*	fclose(f1); fclose(f2);*/
-		
+
 	//-----------------------------------------------------------------------------------------------
 	// TRAINING PHASE
 	//-----------------------------------------------------------------------------------------------
@@ -205,16 +206,16 @@ int main(int argc, char** argv)
 	for (struct example* list=training_set; list!=NULL; list=list->next)
 	{
 		predict(network, list->samples, list->ns);
-/*		printf("Binary prediction\n");*/
-/*		get_float_binary_prediction(network, mylabel, NPITCHES, 0.05);*/
-/*		print_winner_pitch_verbose (mylabel, NPITCHES);*/
+/*			printf("Binary prediction\n");*/
+	/*		get_float_binary_prediction(network, mylabel, NPITCHES, 0.05);*/
+	/*		print_winner_pitch_verbose (mylabel, NPITCHES);*/
 		printf("Full float prediction values\n");
 		print_last_prediction(network);
-		printf("Winner-takes-all prediction\n");
+		printf("Winner-takes-all ->\t");
 		get_winner_prediction (network, mylabel, NPITCHES);
-		print_winner_pitch_verbose (mylabel, NPITCHES);
-		printf("CORRECT ANSWER -> ");
-		print_winner_pitch_verbose (list->label, NPITCHES);
+		print_winner_pitch (mylabel, NPITCHES);
+		printf("CORRECT ANSWER ->\t");
+		print_winner_pitch (list->label, NPITCHES);
 		printf("\n");
 		if (compare_labels(mylabel, list->label, NPITCHES) < 0)
 			failure_rate++;
