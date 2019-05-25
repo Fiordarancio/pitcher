@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 
 
 # Default values are often updated
-gfile = 'logs/hello_testxor_glberr.txt'
-lfile = 'logs/hello_testxor_locerr.txt'
+gfile = 'logs/hello_testchar_glberr.txt'
+lfile = 'logs/hello_testchar_locerr.txt'
 ans = input('Can I use files in log (now {} and {})? [y/n] '.format(gfile, lfile))
 if (ans != 'y'):
 	gfile = input('Please tell me the file to read for GLOBAL error: ')
@@ -85,7 +85,7 @@ elif times == 3:
 	plt.legend()
 else:
 	plt.plot(batch, lerr, 'r--', )
-	plt.plot(batch, lerr, 'b.')
+	plt.plot(batch, lerr, 'r.')
 	plt.title('Local error over batches (all epochs)') 
 	plt.xlabel('Batch')
 	plt.ylabel('Error')

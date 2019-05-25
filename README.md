@@ -1,4 +1,4 @@
-# neural-pitch-recognizer
+# PITCHER - A neural-PITCH-recognizER
 C implementation of a pitch recognizer using a perceptron-based neural network.
 
 ## Brief description

@@ -420,7 +420,7 @@ void p_net_train_SGD (	p_net* net, int epochs, int batches, float lrate, float m
 			// print the local error averaged on batch
 			local_err /= samples_per_batch;
 			print_exerr(fl, (epc-1)*batches+mbc, local_err);
-			printf(" Batch %d...\n\n", (mbc+1));
+			printf(" Batch %d...\n", (mbc+1));
 			fflush(stdout);
 		}
 		// mbc == batches

@@ -8,7 +8,7 @@
 
 #define DIM_CHAR		8
 #define DIM_LABEL		3
-#define NUM_SAMPLES		10
+#define NUM_SAMPLES		100
 
 #define BATCHES			10
 #define MAX_EPOCHS		20
