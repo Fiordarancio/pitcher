@@ -12,7 +12,7 @@
 #include "fftw3.h"
 
 #define NHD					8
-#define DIM_TSET			10
+#define DIM_TSET			20
 #define NOISE_STEPS			20
 
 #define SAMPLERATE			44100
@@ -49,7 +49,8 @@ char*	prologue_file = "logs/ftrain_pr.txt";	// net structure
 char*	lerr_file = "logs/ftrain_locerr.txt";	// local error over batches
 char*	gerr_file = "logs/ftrain_glberr.txt";	// global error over epoch
 
-int		pitch_frequencies [] = 
+
+int	pitch_frequencies [] = 
 {
 	261.63, // C4
 	277.18, // C#-Db
@@ -64,7 +65,6 @@ int		pitch_frequencies [] =
 	466.17, // A#-Bb
 	493.86  // B
 }; 
-
 
 //----------------------------------------------------------------------------
 // MAIN
@@ -126,12 +126,32 @@ int main(int argc, char** argv)
 		volume += 30;
 		for (f=0; f<NPITCHES; f++)
 		{
-			freq_noise = -1.0; // added noise goes from -1 to +1 Hz (very low and linear)
+			freq_noise = -2.0; // added noise goes from -1 to +1 Hz (very low and linear)
 			for (n=0; n<NOISE_STEPS; n++)
 			{
 				freq_noise += n * 2.0/NOISE_STEPS;
 				// generate sin
 				generate_sin (sinwave, pitch_frequencies[f]+freq_noise, SAMPLERATE, volume, FRAMES_PER_CHUNK, CHANNELS);
+				// for each channel, do
+				for (j=0; j<CHANNELS; j++)
+				{
+					// initialize in, then execute plan
+					for (i=0; i<FRAMES_PER_CHUNK; i++)
+						in[i] = sinwave[i*CHANNELS+j];
+					fftw_execute(p);
+					// transfer informations into the example: we take the module of the frequency complex
+					for (i=0; i<NUM_INPUTS; i++)
+						mysampl[i] = sqrt(pow(out[i][0],2) + pow(out[i][1],2));
+					for (i=0; i<NPITCHES; i++)
+						mylabel[i] = 0.0;
+					mylabel[f] = 1.0;
+					training_set = insert_example (training_set, mysampl, NUM_INPUTS, mylabel, NPITCHES);
+					train_size++;
+				}
+				
+				// generate a second base sin - enlarge training set
+				// generate sin
+				generate_sin (sinwave, pitch_frequencies[f], SAMPLERATE, volume, FRAMES_PER_CHUNK, CHANNELS);
 				// for each channel, do
 				for (j=0; j<CHANNELS; j++)
 				{

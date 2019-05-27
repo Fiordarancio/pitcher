@@ -9,7 +9,7 @@ CFLAGS=-O3 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized
 LDTHR=-lpthread -lrt
 LDLIBS=-lasound -lsndfile -lfftw3 $(LDTHR) -lm
 
-PROGS=ftrain fpitcher 
+PROGS=ftrain fpitcher fcross
 OTHER=pitcher3 pitcher train
 LIBS=autil.o wav.o mutils.o pnet.o pnetlib.o pitch.o ptask_time.o trainlib.o
 
@@ -26,6 +26,7 @@ ftrain: pnet.o pitch.o pnetlib.o
 # BASE PROGRAM
 pitcher: autil.o pnet.o pitch.o ptask_time.o mutils.o
 fpitcher: autil.o pnet.o pitch.o ptask_time.o mutils.o
+fcross: pnetlib.o pnet.o pitch.o
 
 # debug capture
 pitcher3: autil.o pnet.o pitch.o ptask_time.o
@@ -46,6 +47,7 @@ dep:
 # DO NOT DELETE
 
 autil.o: autil.h
+fcross.o: pnetlib.h pnet.h debug.h pitch.h
 ftrain.o: pnetlib.h pnet.h debug.h pitch.h
 mutils.o: mutils.h
 pitch.o: pitch.h

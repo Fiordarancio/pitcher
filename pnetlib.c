@@ -402,11 +402,13 @@ void p_net_train_SGD (	p_net* net, int epochs, int batches, float lrate, float m
 						dbg_printf("  Accumulated DWji[%d][%d][%d]: %f += ", l,j,i, DeltaWji[l][j][i]);
 						DeltaWji[l][j][i] /= samples_per_batch;
 						dbg_printf("w[%d][%d][%d]: %f -> ", l, j, i, net->layers[l].perceptrons[j].weights[i]);
-						net->layers[l].perceptrons[j].weights[i] += DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];
+/*						net->layers[l].perceptrons[j].weights[i] += DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];*/
+						net->layers[l].perceptrons[j].weights[i] += -DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];
 						dbg_printf("new w[%d][%d][%d]: %f ", l, j, i, net->layers[l].perceptrons[j].weights[i]);
 						dbg_printf("(applied Dwji: %f)\n", DeltaWji[l][j][i]);
 						dbg_printf("  mom*oldDeltaWji: %f * %f = %f\n",mom,oldDeltaWji[l][j][i],mom*oldDeltaWji[l][j][i]);
-						oldDeltaWji[l][j][i] = DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];
+/*						oldDeltaWji[l][j][i] = DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];*/
+						oldDeltaWji[l][j][i] = -DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];
 						dbg_printf("  oldDeltaWji[%d][%d][%d] is now: %f (sample %d)\n",l,j,i,oldDeltaWji[l][j][i],mbc*samples_per_batch+smp);
 					}
 					DeltaBias[l][j] /= samples_per_batch;
@@ -420,7 +422,7 @@ void p_net_train_SGD (	p_net* net, int epochs, int batches, float lrate, float m
 			// print the local error averaged on batch
 			local_err /= samples_per_batch;
 			print_exerr(fl, (epc-1)*batches+mbc, local_err);
-			printf(" Batch %d...\n", (mbc+1));
+			dbg_printf(" Batch %d...\r", (mbc+1));
 			fflush(stdout);
 		}
 		// mbc == batches
@@ -455,11 +457,13 @@ void p_net_train_SGD (	p_net* net, int epochs, int batches, float lrate, float m
 						dbg_printf("  Accumulated DWji[%d][%d][%d]: %f -> ", l,j,i, DeltaWji[l][j][i]);
 						DeltaWji[l][j][i] /= samples_surplus;
 						dbg_printf("w[%d][%d][%d]: %f ->", l, j, i, net->layers[l].perceptrons[j].weights[i]);
-						net->layers[l].perceptrons[j].weights[i] += DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];
+/*						net->layers[l].perceptrons[j].weights[i] += DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];*/
+						net->layers[l].perceptrons[j].weights[i] += -DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];
 						dbg_printf("new w[%d][%d][%d]: %f ", l, j, i, net->layers[l].perceptrons[j].weights[i]);
 						dbg_printf("(applied Dwji: %f)\n", DeltaWji[l][j][i]);
 						dbg_printf("  mom*oldDeltaWji: %f * %f = %f\n",mom,oldDeltaWji[l][j][i],mom*oldDeltaWji[l][j][i]);
-						oldDeltaWji[l][j][i] = DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];
+/*						oldDeltaWji[l][j][i] = DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];*/
+						oldDeltaWji[l][j][i] = -DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];
 						dbg_printf("  oldDeltaWji[%d][%d][%d] is now: %f (sample %d)\n",l,j,i,oldDeltaWji[l][j][i],mbc*samples_per_batch+smp);
 					}
 					DeltaBias[l][j] /= samples_surplus;
