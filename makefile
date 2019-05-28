@@ -1,6 +1,6 @@
-# debugging
+## debugging
 #CPPFLAGS=-g
-#CFLAGS=-O0 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized -D__DEBUG_PRINTF__
+#CFLAGS=-O0 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized -D__PNET_DEBUG__
 
 #release
 CPPFLAGS=
@@ -24,9 +24,8 @@ train: pnet.o pitch.o pnetlib.o
 ftrain: pnet.o pitch.o pnetlib.o
 
 # BASE PROGRAM
-pitcher: autil.o pnet.o pitch.o ptask_time.o mutils.o
-fpitcher: autil.o pnet.o pitch.o ptask_time.o mutils.o
-fcross: pnetlib.o pnet.o pitch.o
+fpitcher: autil.o pnet.o pitch.o ptask_time.o mutils.o pnetlib.o
+fcross: pnetlib.o pnet.o pitch.o autil.o ptask_time.o mutils.o
 
 # debug capture
 pitcher3: autil.o pnet.o pitch.o ptask_time.o
@@ -47,12 +46,14 @@ dep:
 # DO NOT DELETE
 
 autil.o: autil.h
-fcross.o: pnetlib.h pnet.h debug.h pitch.h
+fcross.o: autil.h pitch.h pnetlib.h pnet.h debug.h ptask_time.h mutils.h
+fpitcher.o: pnet.h debug.h autil.h pitch.h ptask_time.h mutils.h pnetlib.h
 ftrain.o: pnetlib.h pnet.h debug.h pitch.h
 mutils.o: mutils.h
 pitch.o: pitch.h
-pitcher3.o: pnet.h debug.h pitch.h autil.h mutils.c mutils.h
+pitcher3.o: pnet.h debug.h pitch.h autil.h ptask_time.h mutils.c mutils.h
 pnet.o: pnet.h debug.h
 pnetlib.o: pnetlib.h pnet.h debug.h
+ptask_time.o: ptask_time.h
 train.o: pnetlib.h pnet.h debug.h pitch.h autil.h
 wav.o: wav.h autil.h

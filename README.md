@@ -1,29 +1,28 @@
 # PITCHER - A neural-PITCH-recognizER
-C implementation of a pitch recognizer using a perceptron-based neural network.
+This project implements a pitch recognizer, usable both for voice and instruments, and it is realized with a perceptron-based neural network. 
 
 ## Brief description
 The main service the application is goig to deliver concerns:
 * building and training the newtork using different audio samples (synthetized and/or wav)
-* capture audio from an input device and ubmit to neural network
+* capture audio from an input device and submit to neural network
 * output results on terminal
 
 The project is deployed under a Linux operating system and exploits [ALSA](https://alsa-project.org/alsa-doc/alsa-lib/index.html) for audio devices control. For wav reading, we used [libsndfile](http://www.mega-nerd.com/libsndfile/). Neural network is self-implemented.
 
 The audio sampling rate we refer by now is 44100 Hz and this is relevant since determines the number of frames effectively read in the period the capturing thread is called (50 ms). Though, both these values can be changed where they are defined, before compilation.
 
-## Map
-The main folder contains (.h and .c):
+The application provides an additional implementation that compares Fast Fourier Trasforms of the audio sample with a reference list in order to provide the correct answer.
 
 ### Libraries
 * `autil`		: utility mini-library for easily manage the ALSA interfaces
-* `wav`			: library for reading a wav file by chunks or entirely, testing also playback if needed
-* `pnet`		: library with all functions needed to build a multi-layer perceptron network, to train it and save its weights
 * `mutils`		: additional geormetric functions
-* `ptask_time`	: library for time thread utilities
+* `pnet`		: library with all functions needed to build a multi-layer perceptron network, to train it and save its weights
 * `pnetlib`		: contains macro-function about: the building of a training set of elements called `example`s, formed by an array of real numbers for samples and another for the label (this generalization allows the user to create any kind of input, as long as he builds up the network accordingly); the training algorithm (we use Stochastic Gradient Descent on minibatch); error evaluation and printing; set shuffling and normalization; plus other utility functions needed during training
+* `ptask_time`	: library for time thread utilities
+* `wav`			: library for reading a wav file by chunks or entirely, testing also playback if needed
 
 ### Main programs
-There are 2 versions of the main programs: `train/ftrain` and `pitcher/fpitcher`. The difference is the application or not of the fft in the examples given (and predicted). In both trainings, we build a 3 layer perceptron network with 12 output neurons (12 pitches to recognize) and save obtained weights. 
+There are 2 versions of the main programs: `train/ftrain` and `pitcher/fpitcher`. The difference is the application or not of the fft in the examples given (and predicted). In both trainings, we usually build a 3 layer perceptron network with 12 output neurons (12 pitches to recognize) and save obtained weights. The number of neurons of the hidden layer can be decided at run time.
 Variables to be set at run time: 
 * the number of input and hidden neurons
 * common bias (trainable)
@@ -32,33 +31,34 @@ Variables to be set at run time:
 * learning rate
 * momentum
 
-See `DATA.md` for some experimental hints about those values (NOT UP TO DATE).
-
 In both pitch-recognizers, the network saved after a training is used by a thread to recognize chunks of data read by an ALSA capturer thread.
 
+The additional application is presented in `fcross.c`, in which a reference set of fft samples obtained by synthetic samples (normalized) is compared with the fft of the normalized chunk read through ALSA. The minimum average squared error indicates the nearest pitch recognized.
+
 ### Plotting utilities
-The file `plot_err.py` is a minimal python3 program that plots error (global - epoch and local - batch) saved after a training usually in `logs/<executable_name>_glberfile.txt` and `logs/<executable_name>locerfile.txt`. 
-The file `plot_fft.py` is connected specifically to `hello_fft` and it is used to plot spectrum of a test signal. Similarly, `plot_ftrain.py` does the same thing but it is designed for a check of the prepared training set used by `ftrain`.
+Some python3 programs are dedicated to plotting results and signals, in order to give a graphic reply to the user. They are:
+* `plot_err.py`		: minimal program that plots the global error (on epoch) and the local error (batch) saved after a training. Files are usually addressed at `logs/<executable_name>_glberfile.txt` and `logs/<executable_name>locerfile.txt`. This utility is used both in the main folder and for test programs 
+* `plot_fft.py`		: is connected specifically to `hello_fft` and it is used to plot spectrum of a test signal
+* `plot_ftrain.py` 	: does the same thing but it is designed for a check of the prepared training set used by `ftrain`
+* `plot_fcross.py`	: plots sine and correspondent fft, checking `fcross`'s autogenerated signals
+* `plot_capturer.py`: with debugging mode active, it does the same thing of `plot_fcross.py`
 
 ### Test programs
-The `tests` folders contains a bunch of tests that, using special network and input configuration, are meant to check performances and find errors. All programs with `hello_` as prefix indicate test programs: descriptions can be found in the files. The program `pitcher3` is a test too, but kept in the main directory: generally it is useful for tuning microphone boosting of your pc (try `alsamixer`). 
+The folder `test` contains a bunch of tests that, using special network and input configuration, are meant to check performances and find errors. We start testing if the network learns simple problems, like AND, OR, XOR and character identification. All programs with `hello_` as prefix indicate test programs: descriptions can be found in the files. The program `pitcher3` is a test too, but kept in the main directory: generally it is useful for tuning microphone boosting of your pc (try `alsamixer`). 
 
 ### Data folders
-The folder `pitches_32f` containes .wav files that record some pitches of digital piano. They are used to extract samples for training. 
-Since, by now, we do not implement an automatic procedure for reading all files in a folder and categorize them by name (to know the pitch), if you want to add more files to enlarge your training set, first make sure that they have single-channel 32-bit format sampled at 44.100 KHz. When the files are loaded, add their names in order of pitch into `train.c`.
+The folder `pitches_32f` containes `.wav` files that record some pitches of digital piano. They are used to extract samples for training. You can add more samples downloading them from the internet too: it helps making the traning stronger.
+Since in this version we do not implement an automatic procedure for reading all files in a folder and categorize them by name (to know the pitch), if you want to add more files to enlarge your training set, first make sure that they have single-channel 32-bit format sampled at 44.100 KHz. When the files are loaded, add their names in order of pitch into `train.c`.
 
-The folder `logs` contains relevant files about the last training that has been launched (`<executable_name>.txt`) and saved weights and error values, which can be plot using python utilities. Use `plot_err.py` with `hello_<test_name>_[glb/loc]err.txt` to plot error during training under certain conditions. 
+The folder `logs` is meant to contain relevant files about the last training that has been launched (`<executable_name>.txt`) and saved weights and error values, which can be plot using python utilities. All log files are generated automatically and overwritten by programs. Use `plot_err.py` with `hello_<test_name>_[glb/loc]err.txt` to plot error during training under certain conditions. 
 
 ## Compile
 If you want to create a new network, train it and use it into pitcher, do:
 * `$ make clean`
-* `$ make all` (prepares `train`/`pitcher` or `ftrain`/`fpitcher`)
-Use `$ make ct` every time you want to lauch a new train, otherwise plots about error monitoring will not be overwritten. Then, launch `./train` and follow the steps to get the work done. All relevant files will be saved into the `logs/` folder.
 
-While compiling all programs, including tests, do:
-* `$ make universe`
+You can compile programs independently, else do `$ make all` (prepares `train`/`pitcher` or `ftrain`/`fpitcher`) or `$ make universe` (compile everything). There are also two possible compilation flags to apply if we want a verbose debugging or not. 
 
-**NOTE**: the majority of log files, especially *log error* ones, are written in the append mode. Remember to remove/rename the last ones before launching your programs, otherwise you'll corrupt your results.
+**NOTE**: the majority of log files, especially *log error* ones, are written in the append mode. Remember to remove/rename the last ones before launching your programs, otherwise you'll corrupt your results. Apply `$ make ct` to clear `logs`: *use with care*.
 
 # A closer look to `ftrain`
 The program `ftrain` trains a perceptron based network whose tunable parameters are the following:
