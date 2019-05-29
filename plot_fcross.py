@@ -3,8 +3,8 @@ import numpy as np
 import cmath
 import matplotlib.pyplot as plt
 
-tfile1 = 'logs/fcross_fftw.txt'
-tfile3 = 'logs/fcross_norm.txt'
+tfile1 = 'logs/fcross_wav_fftw.txt'
+tfile3 = 'logs/fcross_wav_norm.txt'
 	
 t1 = open(tfile1, 'r')
 t3 = open(tfile3, 'r')
@@ -17,8 +17,6 @@ for line in t1:
 	# already complex numbers' magnitude
 	freq1.append(float(elem[1].strip()))
 print('Values:', len(samp1))
-
-print('Max frequency values:', np.abs(np.max(freq1)))
 
 time = []
 vals = []

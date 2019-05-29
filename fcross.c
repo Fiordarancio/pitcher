@@ -202,7 +202,7 @@ void *capturer_task(void* arg)
 						float module = sqrt(pow((float)out[i][0],2) + pow((float)out[i][1],2));
 						avg_error += pow((module - list->samples[i]), 2);
 					}
-					avg_error = sqrt(avg_err/list->ns);
+					avg_error = sqrt(avg_error/list->ns);
 					#ifdef __PNET_DEBUG__
 					dbg_printf("Sample %d avg_err: %f; lab [", k, avg_error);
 					for (i=0; i<NPITCHES; i++)

@@ -33,6 +33,40 @@ char* which_pitch (int pt)
 	}
 }
 
+char* which_pitch_notation (int pt)
+{
+	switch(pt)	
+	{
+		case A:
+			return "A";
+		case Bb:
+			return "A#";
+		case B:
+			return "B";
+		case C:
+			return "C";
+		case Db:
+			return "C#";
+		case D:
+			return "D";
+		case Eb:
+			return "D#";
+		case E:
+			return "E";
+		case F:
+			return "F";
+		case Gb:
+			return "F#";
+		case G:
+			return "G";
+		case Ab:
+			return "G#";
+		default:
+			return "";
+	}
+
+}
+
 // give an array of 12 elements, say which pitch wins
 void print_winner_pitch (float* pts, int n) 
 {

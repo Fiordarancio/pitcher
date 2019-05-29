@@ -17,6 +17,7 @@ typedef enum {
 
 // say the pitch
 char*	which_pitch (int pt);
+char* 	which_pitch_notation (int pt);
 // give an array of 12 elements, say which pitch wins
 void 	print_winner_pitch (float* pts, int n);
 void 	print_winner_pitch_verbose (float* pts, int n);

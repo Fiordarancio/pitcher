@@ -1,15 +1,15 @@
 ## debugging
-#CPPFLAGS=-g
-#CFLAGS=-O0 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized -D__PNET_DEBUG__
+CPPFLAGS=-g
+CFLAGS=-O0 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized -D__PNET_DEBUG__ -D__VERBOSE__
 
-#release
-CPPFLAGS=
-CFLAGS=-O3 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized
+##release
+#CPPFLAGS=
+#CFLAGS=-O3 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized
 
 LDTHR=-lpthread -lrt
 LDLIBS=-lasound -lsndfile -lfftw3 $(LDTHR) -lm
 
-PROGS=ftrain fpitcher fcross
+PROGS=ftrain fpitcher fcross fcross_wav
 OTHER=pitcher3 pitcher train
 LIBS=autil.o wav.o mutils.o pnet.o pnetlib.o pitch.o ptask_time.o trainlib.o
 
@@ -26,6 +26,7 @@ ftrain: pnet.o pitch.o pnetlib.o
 # BASE PROGRAM
 fpitcher: autil.o pnet.o pitch.o ptask_time.o mutils.o pnetlib.o
 fcross: pnetlib.o pnet.o pitch.o autil.o ptask_time.o mutils.o
+fcross_wav: pnetlib.o pnet.o pitch.o autil.o ptask_time.o mutils.o wav.o
 
 # debug capture
 pitcher3: autil.o pnet.o pitch.o ptask_time.o
@@ -47,6 +48,8 @@ dep:
 
 autil.o: autil.h
 fcross.o: autil.h pitch.h pnetlib.h pnet.h debug.h ptask_time.h mutils.h
+fcross_wav.o: autil.h pitch.h pnetlib.h pnet.h debug.h ptask_time.h mutils.h
+fcross_wav.o: wav.h
 fpitcher.o: pnet.h debug.h autil.h pitch.h ptask_time.h mutils.h pnetlib.h
 ftrain.o: pnetlib.h pnet.h debug.h pitch.h
 mutils.o: mutils.h

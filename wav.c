@@ -15,7 +15,7 @@ SNDFILE* open_wav(char* fname, SF_INFO* info, alsa_param_t* params)
     // check we use LE
     // assert((info->format & SF_FORMAT_ENDMASK) == SF_ENDIAN_LITTLE);
     
-	#ifdef VERBOSE
+	#ifdef __VERBOSE__
 		printf("Opened file: %s\n", fname);
 		printf("    - channels: %d\n", info->channels); 
 		printf("    - sample rate: %d\n", info->samplerate);
