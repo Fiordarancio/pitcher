@@ -1,10 +1,10 @@
 ## debugging
-CPPFLAGS=-g
-CFLAGS=-O0 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized -D__PNET_DEBUG__ -D__VERBOSE__
+#CPPFLAGS=-g
+#CFLAGS=-O0 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized -D__PNET_DEBUG__ -D__VERBOSE__
 
-##release
-#CPPFLAGS=
-#CFLAGS=-O3 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized
+#release
+CPPFLAGS=
+CFLAGS=-O3 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized
 
 LDTHR=-lpthread -lrt
 LDLIBS=-lasound -lsndfile -lfftw3 $(LDTHR) -lm

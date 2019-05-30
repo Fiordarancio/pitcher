@@ -10,7 +10,7 @@ CFLAGS=-O0 -Wall -pedantic -Wno-variadic-macros -Wmaybe-uninitialized -D__PNET_D
 LDTHR=-lpthread -lrt
 LDLIBS=-lasound -lsndfile -lfftw3 $(LDTHR) -lm
 
-TESTS=hello_pow hello_shuf hello_fft hello_testand hello_testand2 hello_testor hello_testxor hello_fftwav hello_testchar
+TESTS=hello_pow hello_shuf hello_fft hello_testand hello_testand2 hello_testor hello_testxor hello_fftwav hello_testchar hello_wav
 LIBS=../autil.o ../wav.o ../mutils.o ../pnet.o ../pnetlib.o ../pitch.o
 
 .PHONY: all
@@ -26,6 +26,7 @@ hello_testand2: ../pnetlib.o ../pnet.o
 hello_testor: ../pnetlib.o ../pnet.o
 hello_testxor: ../pnetlib.o ../pnet.o
 hello_testchar: ../pnetlib.o ../pnet.o
+hello_wav: ../wav.o ../autil.o ../mutils.o
 
 # clean progs
 .PHONY: clean
@@ -51,3 +52,4 @@ hello_testand2.o: ../pnet.h ../debug.h ../pnetlib.h ../pnet.h
 hello_testchar.o: ../pnetlib.h ../pnet.h
 hello_testor.o: ../pnet.h ../debug.h ../pnetlib.h ../pnet.h
 hello_testxor.o: ../pnet.h ../debug.h ../pnetlib.h ../pnet.h
+hello_wav.o: ../wav.h ../autil.h ../mutils.h

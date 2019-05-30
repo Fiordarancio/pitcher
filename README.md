@@ -22,7 +22,7 @@ The application provides an additional implementation that compares Fast Fourier
 * `wav`			: library for reading a wav file by chunks or entirely, testing also playback if needed
 
 ### Main programs
-There are 2 versions of the main programs: `train/ftrain` and `pitcher/fpitcher`. The difference is the application or not of the fft in the examples given (and predicted). In both trainings, we usually build a 3 layer perceptron network with 12 output neurons (12 pitches to recognize) and save obtained weights. The number of neurons of the hidden layer can be decided at run time.
+`ftrain` and `fpitcher` are programs which train the network and use it for predicting real-time audio respectively. Each audio is submitted as the fft of the normalized signal. We usually build a 3 layer perceptron network with 12 output neurons (12 pitches to recognize) and save obtained weights. The number of neurons of the hidden layer can be decided at run time.
 Variables to be set at run time: 
 * the number of input and hidden neurons
 * common bias (trainable)
@@ -47,8 +47,7 @@ Some python3 programs are dedicated to plotting results and signals, in order to
 The folder `test` contains a bunch of tests that, using special network and input configuration, are meant to check performances and find errors. We start testing if the network learns simple problems, like AND, OR, XOR and character identification. All programs with `hello_` as prefix indicate test programs: descriptions can be found in the files. The program `pitcher3` is a test too, but kept in the main directory: generally it is useful for tuning microphone boosting of your pc (try `alsamixer`). 
 
 ### Data folders
-The folder `pitches_32f` containes `.wav` files that record some pitches of digital piano. They are used to extract samples for training. You can add more samples downloading them from the internet too: it helps making the traning stronger.
-Since in this version we do not implement an automatic procedure for reading all files in a folder and categorize them by name (to know the pitch), if you want to add more files to enlarge your training set, first make sure that they have single-channel 32-bit format sampled at 44.100 KHz. When the files are loaded, add their names in order of pitch into `train.c`.
+The folder `wav_32f` containes `.wav` files that record some pitches of digital piano. They can be used to extract samples for training. You can add more samples downloading them from the internet too: it helps making the traning stronger. **NOTE:** wavs are provided 32bit `float` sampled at 44100. Other formats are not supported.
 
 The folder `logs` is meant to contain relevant files about the last training that has been launched (`<executable_name>.txt`) and saved weights and error values, which can be plot using python utilities. All log files are generated automatically and overwritten by programs. Use `plot_err.py` with `hello_<test_name>_[glb/loc]err.txt` to plot error during training under certain conditions. 
 
@@ -56,7 +55,7 @@ The folder `logs` is meant to contain relevant files about the last training tha
 If you want to create a new network, train it and use it into pitcher, do:
 * `$ make clean`
 
-You can compile programs independently, else do `$ make all` (prepares `train`/`pitcher` or `ftrain`/`fpitcher`) or `$ make universe` (compile everything). There are also two possible compilation flags to apply if we want a verbose debugging or not. 
+You can compile programs independently, else do `$ make all` (prepares `ftrain`/`fpitcher`) or `$ make universe` (prepare everything). There are also two possible compilation flags to apply if we want a verbose debugging or not. 
 
 **NOTE**: the majority of log files, especially *log error* ones, are written in the append mode. Remember to remove/rename the last ones before launching your programs, otherwise you'll corrupt your results. Apply `$ make ct` to clear `logs`: *use with care*.
 
