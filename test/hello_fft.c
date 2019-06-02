@@ -11,8 +11,8 @@
 #include "../pitch.h"
 
 #define SRATE	44100
-#define PERIOD	1		// secs
-#define FRAMES 	(SRATE*PERIOD)
+#define PERIOD	0.1		// secs
+#define FRAMES 	(int)(SRATE*PERIOD)
 #define CHANS	2
 
 // returns an array of dim samples plotting a sinusoidal wave. Dimension should have 
@@ -30,6 +30,37 @@ void generate_sin (float wave [], float frequency, int samplerate, float volume,
 		for (j=0; j<channels; j++)
 			wave[i*channels + j] = val;
 	}
+}
+
+// normalize each channel separately
+void normalize_sin (float wave[], int frames, int channels)
+{
+	float 	min, max;
+	int 	i, j;
+	
+	for (j=0; j<channels; j++)
+	{
+		// find min and max
+		min = wave[j]; 
+		max = wave[j];
+		for (i=0; i<frames; i++)
+		{
+			if (wave[i*channels + j] < min)
+			{
+				printf("min: %f\n", wave[i*channels + j]);
+				min = wave[i*channels + j];
+			}
+			if (wave[i*channels + j] > max)
+			{
+				printf("max: %f\n", wave[i*channels + j]);
+				max = wave[i*channels + j];
+			}
+		}
+		// normalize
+		for (i=0; i<frames; i++)
+			wave[i*channels + j] = (wave[i*channels + j] - min)/(max-min);
+	}
+	
 }
 
 int	pitch_frequencies [] = 
@@ -70,7 +101,8 @@ int main()
 	fs = fopen(fsin, "a+"); assert(fs!=NULL);
 	
 	// prepare 
-	generate_sin (wave, pitch_frequencies[G], SRATE, 25, FRAMES, CHANS); // very minimal volume
+	generate_sin (wave, pitch_frequencies[G], SRATE, 25000, FRAMES, CHANS); // normal volume
+	normalize_sin (wave, FRAMES, CHANS); // normalize
 	in  = (double*) fftw_malloc (sizeof(double) * FRAMES); // repeat CHANS times
 	out = (fftw_complex*) fftw_malloc (sizeof(fftw_complex) * FRAMES);
     p 	= fftw_plan_dft_r2c_1d(FRAMES, in, out, FFTW_ESTIMATE);
