@@ -11,7 +11,7 @@
 #include "pitch.h"
 #include "fftw3.h"
 
-#define NHD					8
+#define NHD					4		// best value
 #define DIM_TSET			20
 #define NOISE_STEPS			20
 
@@ -21,10 +21,10 @@
 #define MIN_VOLUME			15000
 #define STEP_VOLUME			300
 
-#define BATCHES				10
+#define BATCHES				32
 #define MAX_EPOCHS			20
 #define LEARNING_RATE		0.001
-#define MOMENTUM			0.001
+#define MOMENTUM			0.9
 #define MIN_ERR				0
 
 // returns an array of dim samples plotting a sinusoidal wave. Dimension should have 

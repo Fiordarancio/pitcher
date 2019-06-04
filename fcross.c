@@ -18,12 +18,6 @@
 #define MIN_VOLUME			15000
 #define STEP_VOLUME			300
 
-#define BATCHES				10
-#define MAX_EPOCHS			20
-#define LEARNING_RATE		0.001
-#define MOMENTUM			0.001
-#define MIN_ERR				0
-
 #define DIM_TSET			1
 #define NOISE_STEPS			10
 
@@ -33,20 +27,44 @@
 char* norm_file = "logs/fcross_norm.txt";
 char* fftw_file = "logs/fcross_fftw.txt";
 
-int	pitch_frequencies [] = 
+float	pitch_frequencies [] = 
 {
+	130.81, // C3
+	138.59, // C3#-D4b
+	146.83, // D3
+	155.56, // D3#-E3b
+	164.81, // E3
+	174.61, // F3
+	185.00, // F3#-G3b
+	196.00, // G3
+	207.65, // G3#-A3b
+	220.00, // A3
+	233.08, // A3#-B3b
+	246.94, // B3
 	261.63, // C4
-	277.18, // C#-Db
-	293.66, // D
-	311.13, // D#-Eb
-	329.63, // E
-	349.23, // F
-	369.99, // F#-Gb
-	392.00, // G
-	415.30, // G#-Ab
-	440.00, // A
-	466.17, // A#-Bb
-	493.86  // B
+	277.18, // C4#-D4b
+	293.66, // D4
+	311.13, // D4#-E4b
+	329.63, // E4
+	349.23, // F4
+	369.99, // F4#-G4b
+	392.00, // G4
+	415.30, // G4#-A4b
+	440.00, // A4
+	466.17, // A4#-B4b
+	493.88, // B4
+	523.25, // C5
+	554.37, // C5#-D5b
+	587.33, // D5
+	622.25, // D5#-E5b
+	659.26, // E5
+	698.46, // F5
+	739.99, // F5#-G5b
+	783.99, // G5
+	830.61, // G5#-A5b
+	880.00, // A5
+	932.33, // A5#-B5b
+	987.77  // B5
 }; 
 
 pthread_t				capturer;			
@@ -205,14 +223,14 @@ void *capturer_task(void* arg)
 					avg_error = sqrt(avg_error/list->ns);
 					#ifdef __PNET_DEBUG__
 					dbg_printf("Sample %d avg_err: %f; lab [", k, avg_error);
-					for (i=0; i<NPITCHES; i++)
+					for (i=0; i<NPITCHES3; i++)
 						dbg_printf(" %d ", (int)list->label[i]);
 					dbg_printf("]\n");
 					#endif
 					if (avg_error < min_error)
 					{
 						min_error = avg_error;
-						for (i=0; i<NPITCHES; i++)
+						for (i=0; i<NPITCHES3; i++)
 							if (list->label[i] == 1.0)
 								min_pitch = i;
 /*						assert(i<NPITCHES);*/
@@ -222,9 +240,9 @@ void *capturer_task(void* arg)
 				}
 				dbg_printf("avg err: %f, min avg: %f, min_pitch: %d\n", avg_error, min_error, min_pitch);
 				if (CHANNELS > 1)
-					printf("On channel %d pitch is %s\n", j, which_pitch(min_pitch));
+					printf("On channel %d pitch is %s\n", j, which_pitch3 (min_pitch));
 				else
-					printf("I suppose you're playing pitch %s\n", which_pitch(min_pitch));
+					printf("I suppose you're playing pitch %s\n", which_pitch3 (min_pitch));
 			} 
 			dbg_printf("\n");
 		}
@@ -258,7 +276,7 @@ int main()
 	const int		 		NUM_INPUTS = (FRAMES/2) + 1;	// effective samples that match with out
 	float 					inisamp [FRAMES];
 	float					refsamp [NUM_INPUTS];
-	float					label [NPITCHES];
+	float					label [NPITCHES3];
 	int 					ini_size = 0;
 	int 					ref_size = 0;
 	int 					k, n, f, j, i;
@@ -266,7 +284,7 @@ int main()
 	double*					in;
 	fftw_complex*			out;
 	fftw_plan				p;	
-	float		 			freq_noise;
+	float		 			freq_noise = 0;
 	float		 			volume;
 	float 					sinwave [FRAMES * CHANNELS];
 	struct task_parameter 	passed_param;
@@ -281,9 +299,9 @@ int main()
 	for (k=0; k<DIM_TSET; k++)
 	{
 		volume += 30;
-		for (f=0; f<NPITCHES; f++)
+		for (f=0; f<NPITCHES3; f++)
 		{
-			freq_noise = -1.0; // added noise goes from -2 to +2 Hz (very low and linear)
+			freq_noise = -1.0; // added noise goes from -1 to +1 Hz (very low and linear)
 			for (n=0; n<NOISE_STEPS; n++)
 			{
 				freq_noise += n * 2.0/NOISE_STEPS;
@@ -295,16 +313,16 @@ int main()
 					for (i=0; i<FRAMES; i++)
 						inisamp[i] = sinwave[i*CHANNELS+j];
 					// initialize label just now
-					for (i=0; i<NPITCHES; i++)
+					for (i=0; i<NPITCHES3; i++)
 						label[i] = 0.0;
 					label[f] = 1.0;
 					#ifdef __PNET_DEBUG__
 					dbg_printf("f (pitch index) is now: %d -> label[", f);
-					for (i=0; i<NPITCHES;i++)
+					for (i=0; i<NPITCHES3;i++)
 						dbg_printf(" %d ", (int)label[i]);
 					dbg_printf("]\n");
 					#endif
-					initial_set = insert_example (initial_set, inisamp, FRAMES, label, NPITCHES);
+					initial_set = insert_example (initial_set, inisamp, FRAMES, label, NPITCHES3);
 					ini_size++;
 				}
 			}
@@ -326,11 +344,11 @@ int main()
 			refsamp[i] = sqrt(pow(out[i][0],2) + pow(out[i][1],2));
 		#ifdef __PNET_DEBUG__
 		dbg_printf("Label [");
-		for (i=0; i<NPITCHES; i++)
+		for (i=0; i<NPITCHES3; i++)
 			dbg_printf(" %d ", (int)list->label[i]);
 		dbg_printf("]\n");
 		#endif
-		reference_set = insert_example (reference_set, refsamp, NUM_INPUTS, list->label, NPITCHES);
+		reference_set = insert_example (reference_set, refsamp, NUM_INPUTS, list->label, NPITCHES3);
 		ref_size++;
 	}
 	printf("The reference set has %d valid ffts (size %d)\n", ref_size, NUM_INPUTS);	

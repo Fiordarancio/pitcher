@@ -1,7 +1,9 @@
-//------------------------------------
-// PITCHER: online PITCH recognizER 
-// (version of first of May, could be obsolete!)
-//------------------------------------
+//--------------------------------------------------------------------------------
+// FPITCHER: online PITCH recognizER over FFT samples
+// In order to distribute load, capturer is responsible of capturing, 
+// normalizing and transforming audio samples , while recognizer
+// has to issue them to the network and print the prediction
+//--------------------------------------------------------------------------------
 #include "pnet.h"
 #include "autil.h"
 #include "pitch.h"
@@ -13,14 +15,12 @@
 // ids of threads (we use ptask.h elements)
 #define CAPTUR_THREAD		0				
 #define RECOGN_THREAD		1
-#define DSPLAY_THREAD		2		// future use
 // periods are equal to deadlines
 #define CAPTUR_PERIOD		50		// ms 
 #define RECOGN_PERIOD		50		// ms
 
 #define NLAYERS				3
 #define FRAMES_PER_CHUNK	2205	// readable frames in 50 ms
-#define CHANNELS			1
 #define THREAD_EXIT_FLAG	(-2)	
 
 #define DIST				(1.0/44100)
@@ -41,16 +41,19 @@ int 			max_overwrite;				// maximum number of overwrites encountered so far
 pthread_t		capturer, recognizer;		// thread ids
 struct timespec t_cap, t_rec;				// structure for monitoring activation of task
 
+const int 		NUM_INPUTS = FRAMES_PER_CHUNK/2 +1;
+
 void *capturer_task(void* arg)
 {
 	printf("[CAPTUR] Now active\n");
 	
-	alsa_param_t	myparams;
-	int 			err, i, j;
+	alsa_param_t	aparam;
+	int 			err, i;
 	float 			power;
 	double*			in;
 	fftw_complex*	out;
 	fftw_plan 		p;
+	float 			tmp_buf [FRAMES_PER_CHUNK];
 
 	// open alsa device for capturing
 	capture_handle = alsa_open("default", MODE_CAPT);
@@ -63,13 +66,16 @@ void *capturer_task(void* arg)
 	// we want to acquire numbers that can be easily normalized. Our network has 
 	// been trained with values captured in 32bit floating point, so we are going
 	// to do the same as well
-	alsa_param_init(&myparams); 				// default initialization
-	myparams.format = SND_PCM_FORMAT_FLOAT;		
-	myparams.frames = FRAMES_PER_CHUNK;
-	myparams.channels = CHANNELS;
-	alsa_param_print(&myparams);
+	// IMPORTANT NOTE: we trained the network using single channel samples even if
+	// the original examples where multiple channeled. Hence, it's faster to capture
+	// always with 1 channel only
+	alsa_param_init(&aparam); 				// default initialization
+	aparam.format = SND_PCM_FORMAT_FLOAT;		
+	aparam.frames = FRAMES_PER_CHUNK;
+	aparam.channels = 1;
+	alsa_param_print(&aparam);
 	// harware parameter configuration and freeing
-	alsa_hw_param_config(capture_handle, &myparams);
+	alsa_hw_param_config(capture_handle, &aparam);
 	// prepare
 	if ((err = snd_pcm_prepare (capture_handle)) < 0)
 	{
@@ -79,15 +85,14 @@ void *capturer_task(void* arg)
 	printf("[CAPTUR] Ready for capture...\n");
 	
 	// according to what just defined, prepare buffers for fourier trasform
-	in 	= (double*) fftw_malloc (sizeof(double) * myparams.channels * myparams.frames);
-	out = (fftw_complex*) fftw_malloc (sizeof(fftw_complex) * myparams.channels * myparams.frames);
-    p 	= fftw_plan_dft_r2c_1d(myparams.frames * myparams.channels, in, out, FFTW_ESTIMATE);
+	in 	= (double*) fftw_malloc (sizeof(double) * FRAMES_PER_CHUNK);
+	out = (fftw_complex*) fftw_malloc (sizeof(fftw_complex) * FRAMES_PER_CHUNK);
+    p 	= fftw_plan_dft_r2c_1d(FRAMES_PER_CHUNK, in, out, FFTW_ESTIMATE);
 	
 	// prepare the buffer that resembles what we want to capture
 	while (1)
 	{
-		float tmp_buf[myparams.frames*CHANNELS];
-		if ((err = alsa_capture_float(capture_handle, tmp_buf, &myparams)) < 0)
+		if ((err = alsa_capture_float(capture_handle, tmp_buf, &aparam)) < 0)
 		{
 			if (xrun_recovery(capture_handle, err, CAPTUR_PERIOD) < 0)
 			{
@@ -100,26 +105,19 @@ void *capturer_task(void* arg)
 			// else proceed
 		}
 		
-		// just write the buffer, but ONLY if the signal power is decent
-		if ((power = euler_trapezoid_float(tmp_buf, DIST, myparams.frames)) >= POWER_THRESH_F32)
+		// write the buffer with chunks that have decent threshold. Moreover, remember that
+		// the number of valuable elements in out are N/2 + 1. The other are just conjugates
+		if ((power = euler_trapezoid_float(tmp_buf, DIST, FRAMES_PER_CHUNK)) >= POWER_THRESH_F32)
 		{
 			// by first, trasform
-			for (i=0; i<myparams.frames;i++)
-			{
-				for (j=0; j<CHANNELS; j++)
-				{
-					in[i*CHANNELS + j] = (double) tmp_buf[i*CHANNELS +j];
-					out[i*CHANNELS + j][0] = 0.0;
-					out[i*CHANNELS + j][1] = 0.0;					
-				}
-			}
+			for (i=0; i<FRAMES_PER_CHUNK;i++)
+				in[i] = (double) tmp_buf[i];
 			fftw_execute(p);
 			
 			// secondly, save results into buffer
 			pthread_mutex_lock(&buf_sem);
-			for (i=0; i<myparams.frames; i++)
-				for (j=0; j<CHANNELS; j++)
-					buffer[i*CHANNELS + j] = (float) sqrt(pow(out[j][0],2) + pow(out[j][1],2)); // NO normalization
+			for (i=0; i<NUM_INPUTS; i++)
+				buffer[i] = (float) sqrt(pow(out[i][0],2) + pow(out[i][1],2)); // NO normalization
 			overwrite++;
 			if (overwrite > max_overwrite)
 				max_overwrite = overwrite;
@@ -150,21 +148,21 @@ void *recognizer_task(void* arg)
 {
 	printf("[RECOGN] Now active\n");
 	
-	int 	i, j;
+	int 	i;
 	p_net* 	network;
 	float	predicted_label [NPITCHES];
-	float	tmp_buf [FRAMES_PER_CHUNK*CHANNELS];
+	float	tmp_buf [NUM_INPUTS];
 	int 	oflag = 0; // do the computation once
 	
 	// load the network
-	network = load_network("logs/wgfile.txt", "logs/prfile.txt");
+	network = load_network("logs/ftrain_wg.txt", "logs/ftrain_pr.txt");
 	print_netinfo(network);
 
 	// take mutual exclusion for reading the buffer and give it to the network
 	while(1)
 	{
-		// just read buffer
 		pthread_mutex_lock(&buf_sem);
+		// check the buffer is not empty		
 		if (overwrite > -1)
 		{
 			if (max_overwrite > 100)
@@ -182,9 +180,9 @@ void *recognizer_task(void* arg)
 				pthread_exit(NULL);
 			}
 			
-			for (i=0; i<FRAMES_PER_CHUNK; i++)
-				for (j=0; j<CHANNELS; j++)
-					tmp_buf[i*CHANNELS + j] = buffer[i*CHANNELS + j];
+			// read the buffer
+			for (i=0; i<NUM_INPUTS; i++)
+				tmp_buf[i] = buffer[i];
 			overwrite = -1;
 			oflag = 1;
 		}
@@ -196,12 +194,12 @@ void *recognizer_task(void* arg)
 		{
 			dbg_printf("[RECOGN] Computing...\n");
 			// do the computation
-			predict(network, tmp_buf, FRAMES_PER_CHUNK);
-			get_float_binary_prediction (network, predicted_label, NPITCHES, 0.5);
+			predict(network, tmp_buf, NUM_INPUTS);
+			get_winner_prediction (network, predicted_label, NPITCHES);
 			#ifdef __PNET_DEBUG__
 			dbg_printf("Prediction = [");
 			for (i=0; i<NPITCHES; i++)
-				dbg_printf(" %d ", (int)predicted_label[i]);
+				dbg_printf(" %f ", predicted_label[i]);
 			dbg_printf("]\n");
 			#endif
 			print_winner_pitch (predicted_label, NPITCHES);
@@ -217,8 +215,8 @@ int main() {
 
 	int	err;	
 	
-	// initialize buffer
-	buffer = (float*) malloc (sizeof(float) * FRAMES_PER_CHUNK * CHANNELS);
+	// initialize buffer: it is big as NUM_INPUTS
+	buffer = (float*) malloc (sizeof(float) * NUM_INPUTS);
 	// initialize mutex
 	if ((err = pthread_mutex_init (&buf_sem, NULL)) < 0)
 	{

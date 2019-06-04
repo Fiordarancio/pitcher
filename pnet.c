@@ -371,7 +371,7 @@ float*** backpropagation_delta (p_net* net, float* target, int dim_target, float
 		{
 			perceptron* pj = &top_layer->perceptrons[j];
 			pj->d = (target[j] - pj->y) * pj->dfx(pj->a);
-			dbg_printf("    [output] pj->d = (%f - %f)*[pj->dfx(%f) = %f] = %f\n",target[j],pj->y,pj->a,pj->dfx(pj->a), pj->d);
+			dbg_all_printf("    [output] pj->d = (%f - %f)*[pj->dfx(%f) = %f] = %f\n",target[j],pj->y,pj->a,pj->dfx(pj->a), pj->d);
 		}	
 	} // the next for loop exits immediately being l==0
 	
@@ -388,7 +388,7 @@ float*** backpropagation_delta (p_net* net, float* target, int dim_target, float
 			{
 				perceptron* pj = &currlayer->perceptrons[j];
 				pj->d = (target[j] - pj->y) * pj->dfx(pj->a);
-				dbg_printf("    [output] pj->d = (%f - %f)*[pj->dfx(%f) = %f] = %f\n",target[j],pj->y,pj->a,pj->dfx(pj->a), pj->d);
+				dbg_all_printf("    [output] pj->d = (%f - %f)*[pj->dfx(%f) = %f] = %f\n",target[j],pj->y,pj->a,pj->dfx(pj->a), pj->d);
 			}
 
 		}
@@ -400,7 +400,7 @@ float*** backpropagation_delta (p_net* net, float* target, int dim_target, float
 			for (j=0; j<currlayer->nperc; j++)
 				sum += currlayer->perceptrons[j].weights[i] * currlayer->perceptrons[j].d;
 			pi->d = pi->dfx(pi->a) * sum;
-			dbg_printf("    [eval for layer %d] pi->d = [pj->dfx(%f) = %f] * %f = %f\n", l-1,pi->a,pi->dfx(pi->a),sum, pi->d);
+			dbg_all_printf("    [eval for layer %d] pi->d = [pj->dfx(%f) = %f] * %f = %f\n", l-1,pi->a,pi->dfx(pi->a),sum, pi->d);
 		}
 		
 		// once all di are stored, we memorize the delta rule in DeltaWji

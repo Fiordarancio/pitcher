@@ -15,17 +15,8 @@
 #define FRAMES				2205
 #define CHANNELS			1 		// must work in this case too
 #define MIN_SCALE			3
-#define MAX_SCALE			5
+#define MAX_SCALE			6
 #define WAV_NAME_SIZE		25
-
-#define BATCHES				10
-#define MAX_EPOCHS			20
-#define LEARNING_RATE		0.001
-#define MOMENTUM			0.001
-#define MIN_ERR				0
-
-#define DIM_TSET			1
-#define NOISE_STEPS			10
 
 #define CAPTUR_PERIOD		50 		// ms
 #define POWER_THRESH_WAV	0.0001	// wavs are mainly normalized and then very small
@@ -37,8 +28,8 @@ char* fftw_file = "logs/fcross_wav_fftw.txt";
 // add accepted chunks read from an openened wav file to a given example list
 int insert_wav (struct example** set, int* set_size, SNDFILE* file, alsa_param_t* apar, int pitch)
 {
-	float**			chunk_buffer;	 // array of arrays -> the example samples
-	float 			label[NPITCHES]; // the example label, determined by the parameter 'pitch'
+	float**			chunk_buffer;		 // array of arrays -> the example samples
+	float 			label[NPITCHES3]; 	// the example label, determined by the parameter 'pitch'
 	int 			accepted = 0, discarded = 0;
 	int 			i, j, f;
 	int 			read_frames;
@@ -71,7 +62,7 @@ int insert_wav (struct example** set, int* set_size, SNDFILE* file, alsa_param_t
 		{
 			accepted++;
 			// label is ok
-			for (f=0; f<NPITCHES; f++)
+			for (f=0; f<NPITCHES3; f++)
 				label[f] = 0.0;
 			label[pitch] = 1.0;
 				
@@ -81,16 +72,16 @@ int insert_wav (struct example** set, int* set_size, SNDFILE* file, alsa_param_t
 				for (j=0; j<apar->channels; j++)
 					for (f=0; f<FRAMES; f++)
 						tmp_buf[f] = chunk_buffer[i][f*apar->channels+j];
-				*set = insert_example (*set, tmp_buf, FRAMES, label, NPITCHES);
+				*set = insert_example (*set, tmp_buf, FRAMES, label, NPITCHES3);
 			}
 			else
-				*set = insert_example (*set, chunk_buffer[i], FRAMES, label, NPITCHES);
+				*set = insert_example (*set, chunk_buffer[i], FRAMES, label, NPITCHES3);
 		}
 		else
 			discarded++;
 /*		dbg_printf("Power of chunk %d is: %f\n", i, chunk_power[i]);*/
 	}
-	dbg_printf("Insert new chunks: %d accepted for pitch %s (%d).", accepted, which_pitch(pitch), pitch);
+	dbg_printf("Insert new chunks: %d accepted for pitch %s (%d).", accepted, which_pitch3(pitch), pitch);
 	dbg_printf("Discarded chunks: %d\n", discarded);
 		
 	// free memory
@@ -244,26 +235,26 @@ void *capturer_task(void* arg)
 					avg_error = sqrt(avg_error/list->ns);
 					#ifdef __PNET_DEBUG__
 					dbg_printf("Sample %d avg_err: %f; lab [", k, avg_error);
-					for (i=0; i<NPITCHES; i++)
+					for (i=0; i<NPITCHES3; i++)
 						dbg_printf(" %d ", (int)list->label[i]);
 					dbg_printf("]\n");
 					#endif
 					if (avg_error < min_error)
 					{
 						min_error = avg_error;
-						for (i=0; i<NPITCHES; i++)
+						for (i=0; i<NPITCHES3; i++)
 							if (list->label[i] == 1.0)
 								min_pitch = i;
-/*						assert(i<NPITCHES);*/
+/*						assert(i<NPITCHES3);*/
 /*						min_pitch = i;*/
 					}
 					k++;
 				}
 				dbg_printf("avg err: %f, min avg: %f, min_pitch: %d\n", avg_error, min_error, min_pitch);
 				if (CHANNELS > 1)
-					printf("On channel %d pitch is %s\n", j, which_pitch(min_pitch));
+					printf("On channel %d pitch is %s\n", j, which_pitch3(min_pitch));
 				else
-					printf("I suppose you're playing pitch %s\n", which_pitch(min_pitch));
+					printf("I suppose you're playing pitch %s\n", which_pitch3(min_pitch));
 			} 
 			dbg_printf("\n");
 		}
@@ -320,13 +311,13 @@ int main()
 	//   Create a function that given a file descriptor reads its chunks
 	//   and adds them to a given list -> chunk power ecc are managed inside
 	//---------------------------------------------------------------------------
-	for (f=0; f<NPITCHES; f++) // pitches (from A to G)
+	for (f=0; f<NPITCHES; f++) // pitches (from C to B)
 	{
-		for (s=MIN_SCALE; s<=MAX_SCALE; s++) // octaves (from 3 to 5)
+		for (s=MIN_SCALE; s<MAX_SCALE; s++) // octave from 3 to 5
 		{
-			sprintf(filename, "wav_32f/%s%dvH.wav", which_pitch_notation(f), s);
+			sprintf(filename, "wav_32f/%s%dvH.wav", which_pitch(f), s);
 			dbg_printf("Filename now is: %s\n", filename);
-		
+	
 			// open wav
 			wav_file = open_wav (filename, &wav_info, &wav_params);
 			if (wav_file == NULL)
@@ -334,17 +325,15 @@ int main()
 				fprintf(stderr, "Error while opening file %s\n", filename);
 				exit(EXIT_FAILURE);
 			}
-			// check format is correct -> THOSE FILES SEEM TO HAVE SND_PCM_FORMAT_S24, SO WE SHOULD
-			// CONVERT THEM IN ORDER TO AVOID A NEW FUNCTION IN THE LIBRARY BY NOW
-			if (wav_params.format == SND_PCM_FORMAT_S16_LE)
+			// check format is correct -> files with wrong formats are reported
+			if (wav_params.format != SND_PCM_FORMAT_FLOAT)
 			{
-				dbg_printf("Warning: %s has 16bit short int format\n", filename);
+				dbg_printf("Warning: %s is not SND_PCM_FORMAT_FLOAT\n", filename);
 				close_wav(wav_file);
 				continue;
 			}
-			assert(wav_params.format == SND_PCM_FORMAT_FLOAT);	
 			// create buffer and read from wav, accepting only sufficiently "powered" signals
-			ini_size += insert_wav (&initial_set, &ini_size, wav_file, &wav_params, f);
+			ini_size += insert_wav (&initial_set, &ini_size, wav_file, &wav_params, (s-MIN_SCALE)*NPITCHES + f);
 			// close wav
 			close_wav(wav_file);
 		}
@@ -367,11 +356,11 @@ int main()
 			refsamp[i] = sqrt(pow(out[i][0],2) + pow(out[i][1],2));
 		#ifdef __PNET_DEBUG__
 		dbg_printf("Label [");
-		for (i=0; i<NPITCHES; i++)
+		for (i=0; i<NPITCHES3; i++)
 			dbg_printf(" %d ", (int)list->label[i]);
 		dbg_printf("]\n");
 		#endif
-		reference_set = insert_example (reference_set, refsamp, NUM_INPUTS, list->label, NPITCHES);
+		reference_set = insert_example (reference_set, refsamp, NUM_INPUTS, list->label, NPITCHES3);
 		ref_size++;
 	}
 	printf("The reference set has %d valid ffts (size %d)\n", ref_size, NUM_INPUTS);	

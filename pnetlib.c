@@ -386,7 +386,7 @@ void p_net_train_SGD (	p_net* net, int epochs, int batches, float lrate, float m
 			for (smp=0; smp<samples_per_batch; smp++)
 			{
 				// get element at index mbc*samples_per_batch + smp
-				dbg_printf(" Training on example %d\n", mbc*samples_per_batch+smp);
+				dbg_all_printf(" Training on example %d\n", mbc*samples_per_batch+smp);
 				struct example* ex = get_example(*tset, (mbc*samples_per_batch+smp));
 				assert(ex!=NULL);
 				local_err += p_net_train_on_example(net, ex, DeltaWji, DeltaBias, lrate);		
@@ -402,14 +402,12 @@ void p_net_train_SGD (	p_net* net, int epochs, int batches, float lrate, float m
 						dbg_printf("  Accumulated DWji[%d][%d][%d]: %f += ", l,j,i, DeltaWji[l][j][i]);
 						DeltaWji[l][j][i] /= samples_per_batch;
 						dbg_printf("w[%d][%d][%d]: %f -> ", l, j, i, net->layers[l].perceptrons[j].weights[i]);
-/*						net->layers[l].perceptrons[j].weights[i] += DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];*/
-						net->layers[l].perceptrons[j].weights[i] += -DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];
+						net->layers[l].perceptrons[j].weights[i] += DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];
 						dbg_printf("new w[%d][%d][%d]: %f ", l, j, i, net->layers[l].perceptrons[j].weights[i]);
 						dbg_printf("(applied Dwji: %f)\n", DeltaWji[l][j][i]);
 						dbg_printf("  mom*oldDeltaWji: %f * %f = %f\n",mom,oldDeltaWji[l][j][i],mom*oldDeltaWji[l][j][i]);
-/*						oldDeltaWji[l][j][i] = DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];*/
-						oldDeltaWji[l][j][i] = -DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];
-						dbg_printf("  oldDeltaWji[%d][%d][%d] is now: %f (sample %d)\n",l,j,i,oldDeltaWji[l][j][i],mbc*samples_per_batch+smp);
+						oldDeltaWji[l][j][i] = DeltaWji[l][j][i] + mom*oldDeltaWji[l][j][i];
+						dbg_printf("  oldDeltaWji[%d][%d][%d] is now: %f (batch %d)\n",l,j,i,oldDeltaWji[l][j][i], mbc);
 					}
 					DeltaBias[l][j] /= samples_per_batch;
 					net->layers[l].perceptrons[j].bias += DeltaBias[l][j];
@@ -529,9 +527,9 @@ float p_net_train_on_example (p_net* net, struct example* ex, float*** Dw, float
 			for (i=0; i<net->layers[l].perceptrons[j].nweights; i++)
 			{
 				// ATTENTION!!! It was Dw += new + Dw*perc, so I was getting Dw = Dw + Dw*perc + new
-				// this means Dw = (1+perc)*Dw + new!!!
-				Dw[l][j][i] = newDeltaWji[l][j][i]; //  + mom * Dw[l][j][i]; 
-				dbg_printf ("   DeltaW[%d][%d][%d] with the new is: %f\n",l,j,i,Dw[l][j][i]);
+				// this means Dw = (1+perc)*Dw + new!!! momentum has to be applied outside
+				Dw[l][j][i] += newDeltaWji[l][j][i]; //  + mom * Dw[l][j][i]; 
+				dbg_all_printf ("   DeltaW[%d][%d][%d] with the new is: %f\n",l,j,i,Dw[l][j][i]);
 			}
 			free(newDeltaWji[l][j]);
 		}
