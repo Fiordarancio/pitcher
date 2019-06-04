@@ -126,7 +126,7 @@ int main(int argc, char** argv)
 		volume += 30;
 		for (f=0; f<NPITCHES; f++)
 		{
-			freq_noise = -2.0; // added noise goes from -1 to +1 Hz (very low and linear)
+			freq_noise = -1.0; // added noise goes from -1 to +1 Hz (very low and linear)
 			for (n=0; n<NOISE_STEPS; n++)
 			{
 				freq_noise += n * 2.0/NOISE_STEPS;
